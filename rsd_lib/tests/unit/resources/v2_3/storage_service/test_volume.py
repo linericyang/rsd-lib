@@ -46,8 +46,8 @@ class StorageServiceTestCase(testtools.TestCase):
         self.assertEqual('Enabled', self.volume_inst.status.state)
         self.assertEqual('OK', self.volume_inst.status.health)
         self.assertEqual('OK', self.volume_inst.status.health_rollup)
-        self.assertEqual(None, self.volume_inst.model)
-        self.assertEqual(None, self.volume_inst.manufacturer)
+        self.assertIsNone(self.volume_inst.model)
+        self.assertIsNone(self.volume_inst.manufacturer)
         self.assertEqual(['Read', 'Write'],
                          self.volume_inst.access_capabilities)
         self.assertEqual(3071983104, self.volume_inst.capacity_bytes)
@@ -83,7 +83,7 @@ class StorageServiceTestCase(testtools.TestCase):
         self.assertEqual('/redfish/v1/StorageServices/NVMeoE1/Volumes/2',
                          self.volume_inst.replica_infos[0].replica)
         self.assertEqual(False, self.volume_inst.bootable)
-        self.assertEqual(None, self.volume_inst.erased)
+        self.assertIsNone(self.volume_inst.erased)
         self.assertEqual(True, self.volume_inst.erase_on_detach)
 
     def test__parse_attributes_missing_actions(self):
