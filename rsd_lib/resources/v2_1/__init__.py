@@ -16,6 +16,7 @@
 from sushy.resources import base
 
 from rsd_lib.resources.v2_1.chassis import chassis
+from rsd_lib.resources.v2_1.ethernet_switch import ethernet_switch
 from rsd_lib.resources.v2_1.fabric import fabric
 from rsd_lib.resources.v2_1.manager import manager
 from rsd_lib.resources.v2_1.node import node
@@ -43,6 +44,10 @@ class RSDLibV2_1(base.ResourceBase):
 
     _managers_path = base.Field(['Managers', '@odata.id'], required=True)
     """ManagerCollection path"""
+
+    _ethernet_switches_path = base.Field(['EthernetSwitches', '@odata.id'],
+                                         required=True)
+    """EthernetSwitchCollecton path"""
 
     _redfish_version = base.Field(['RedfishVersion'], required=True)
     """Redfish version"""
@@ -183,3 +188,27 @@ class RSDLibV2_1(base.ResourceBase):
         return manager.Manager(self._conn,
                                identity,
                                redfish_version=self.redfish_version)
+
+    def get_ethernet_switch_collection(self):
+        """Get the EthernetSwitchCollection object
+
+        :raises: MissingAttributeError, if the collection attribute is
+            not found
+        :returns: a EthernetSwitchCollection object
+        """
+        return ethernet_switch.EthernetSwitchCollection(
+            self._conn,
+            self._ethernet_switches_path,
+            redfish_version=self.redfish_version
+        )
+
+    def get_ethernet_switch(self, identity):
+        """Given the identity return a EthernetSwitch object
+
+        :param identity: The identity of the EthernetSwitch resource
+        :returns: The EthernetSwitch object
+        """
+        return ethernet_switch.EthernetSwitch(
+            self._conn,
+            identity,
+            redfish_version=self.redfish_version)

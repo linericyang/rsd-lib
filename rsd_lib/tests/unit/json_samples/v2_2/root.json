@@ -22,6 +22,9 @@
     "Fabrics": {
         "@odata.id": "/redfish/v1/Fabrics"
     },
+    "EthernetSwitches": {
+        "@odata.id": "/redfish/v1/EthernetSwitches"
+    },
     "TelemetryService": {
         "@odata.id": "/redfish/v1/TelemetryService"
     },
