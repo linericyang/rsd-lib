@@ -98,20 +98,17 @@
         "#ComposedNode.Assemble": {
             "target": "/redfish/v1/Nodes/Node1/Actions/ComposedNode.Assemble"
         },
-        "#ComposedNode.AttachEndpoint": {
-            "target":
-                "/redfish/v1/Nodes/Node1/Actions/ComposedNode.AttachEndpoint",
-            "Resource@Redfish.AllowableValues": [
-                {"@odata.id":"/redfish/v1/Chassis/PCIeSwitchChassis/Drives/Disk.Bay.1"},
-                {"@odata.id":"/redfish/v1/StorageServices/NVMeoE1/Volumes/1"}
-            ]
+        "#ComposedNode.AttachResource": {
+            "target": "/redfish/v1/Nodes/Node1/Actions/ComposedNode.AttachResource",
+            "@Redfish.ActionInfo": {
+                "@odata.id":"/redfish/v1/Nodes/Node1/Actions/AttachResourceActionInfo"
+            }
         },
-        "#ComposedNode.DetachEndpoint": {
-            "target":
-                "/redfish/v1/Nodes/Node1/Actions/ComposedNode.DetachEndpoint",
-            "Resource@Redfish.AllowableValues": [
-                {"@odata.id":"/redfish/v1/Chassis/PCIeSwitchChassis/Drives/Disk.Bay.3"}
-            ]
+        "#ComposedNode.DetachResource": {
+            "target": "/redfish/v1/Nodes/Node1/Actions/ComposedNode.DetachResource",
+            "@Redfish.ActionInfo": {
+                "@odata.id":"/redfish/v1/Nodes/Node1/Actions/DetachResourceActionInfo"
+            }
         }
     }
 }
