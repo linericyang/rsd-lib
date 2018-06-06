@@ -80,7 +80,7 @@ class Drive(base.ResourceBase):
     media_type = base.Field('MediaType')
     """The media type of this drive"""
 
-    capacity_bytes = base.Field('CapacityBytes', adapter=int)
+    capacity_bytes = base.Field('CapacityBytes')
     """The capacity in Bytes of this drive"""
 
     manufacturer = base.Field('Manufacturer')
