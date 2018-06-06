@@ -19,6 +19,7 @@ from sushy import exceptions
 from sushy.resources import base
 
 from rsd_lib.resources.v2_1.fabric import endpoint
+from rsd_lib.resources.v2_1.fabric import switch
 from rsd_lib.resources.v2_1.fabric import zone
 from rsd_lib import utils as rsd_lib_utils
 
@@ -50,6 +51,8 @@ class Fabric(base.ResourceBase):
     status = StatusField('Status')
 
     _endpoints = None  # ref to EndpointCollection instance
+
+    _switches = None  # ref to SwitchCollection instance
 
     _zones = None  # ref to ZoneCollection instance
 
@@ -86,6 +89,28 @@ class Fabric(base.ResourceBase):
 
         return self._endpoints
 
+    def _get_switch_collection_path(self):
+        """Helper function to find the SwitchCollection path"""
+        switch_col = self.json.get('Switches')
+        if not switch_col:
+            raise exceptions.MissingAttributeError(attribute='Switches',
+                                                   resource=self._path)
+        return switch_col.get('@odata.id')
+
+    @property
+    def switches(self):
+        """Property to provide reference to `SwitchCollection` instance
+
+        It is calculated once when it is queried for the first time. On
+        refresh, this property is reset.
+        """
+        if self._switches is None:
+            self._switches = switch.SwitchCollection(
+                self._conn, self._get_switch_collection_path(),
+                redfish_version=self.redfish_version)
+
+        return self._switches
+
     def _get_zone_collection_path(self):
         """Helper function to find the ZoneCollection path"""
         zone_col = self.json.get('Zones')
@@ -112,6 +137,7 @@ class Fabric(base.ResourceBase):
         super(Fabric, self).refresh()
         self._endpoints = None
         self._zones = None
+        self._switches = None
 
 
 class FabricCollection(base.ResourceCollectionBase):

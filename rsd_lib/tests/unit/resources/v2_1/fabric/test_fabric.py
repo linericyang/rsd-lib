@@ -21,6 +21,7 @@ import testtools
 
 from rsd_lib.resources.v2_1.fabric import endpoint
 from rsd_lib.resources.v2_1.fabric import fabric
+from rsd_lib.resources.v2_1.fabric import switch
 from rsd_lib.resources.v2_1.fabric import zone
 
 
@@ -109,6 +110,46 @@ class FabricTestCase(testtools.TestCase):
         # | WHEN & THEN |
         self.assertIsInstance(self.fabric_inst.endpoints,
                               endpoint.EndpointCollection)
+
+    def test__get_switch_collection_path_missing_attr(self):
+        self.fabric_inst._json.pop('Switches')
+        self.assertRaisesRegex(
+            exceptions.MissingAttributeError, 'attribute Switches',
+            self.fabric_inst._get_switch_collection_path)
+
+    def test_switches(self):
+        self.assertIsNone(self.fabric_inst._switches)
+        self.conn.get.return_value.json.reset_mock()
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'switch_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        actual_switches = self.fabric_inst.switches
+        self.assertIsInstance(actual_switches,
+                              switch.SwitchCollection)
+        self.conn.get.return_value.json.assert_called_once_with()
+        self.conn.get.return_value.json.reset_mock()
+        self.assertIs(actual_switches,
+                      self.fabric_inst.switches)
+        self.conn.get.return_value.json.assert_not_called()
+
+    def test_switches_on_refresh(self):
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'switch_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        self.assertIsInstance(self.fabric_inst.switches,
+                              switch.SwitchCollection)
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'fabric.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+
+        self.fabric_inst.refresh()
+        self.assertIsNone(self.fabric_inst._switches)
+
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'switch_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        self.assertIsInstance(self.fabric_inst.switches,
+                              switch.SwitchCollection)
 
     def test__get_zone_collection_path_missing_attr(self):
         self.fabric_inst._json.pop('Zones')
