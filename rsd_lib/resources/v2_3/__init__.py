@@ -27,6 +27,10 @@ class RSDLibV2_3(v2_2.RSDLibV2_2):
     # service don't exist in RSD v2.3
     _telemetry_service_path = None
 
+    _ethernet_switches_path = base.Field(
+        ['Oem', 'Intel_RackScale', 'EthernetSwitches', '@odata.id'])
+    """EthernetSwitchCollecton path"""
+
     _storage_service_path = base.Field(['StorageServices',
                                         '@odata.id'], required=True)
     """StorageServiceCollection path"""

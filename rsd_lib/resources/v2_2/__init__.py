@@ -22,6 +22,10 @@ from rsd_lib.resources.v2_2.telemetry import telemetry
 
 class RSDLibV2_2(v2_1.RSDLibV2_1):
 
+    _ethernet_switches_path = base.Field(
+        ['Oem', 'Intel_RackScale', 'EthernetSwitches', '@odata.id'])
+    """EthernetSwitchCollecton path"""
+
     _nodes_path = base.Field(['Oem', 'Intel_RackScale', 'Nodes', '@odata.id'],
                              required=True)
     """NodeCollection path"""
