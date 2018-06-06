@@ -15,6 +15,8 @@
 
 from sushy.resources import base
 
+from rsd_lib import utils as rsd_lib_utils
+
 
 class ProcessorMetrics(base.ResourceBase):
     name = base.Field('Name')
@@ -26,16 +28,20 @@ class ProcessorMetrics(base.ResourceBase):
     identity = base.Field('Id')
     """The metrics identity"""
 
-    average_frequency_mhz = base.Field('AverageFrequencyMHz', adapter=int)
+    average_frequency_mhz = base.Field('AverageFrequencyMHz',
+                                       adapter=rsd_lib_utils.int_or_none)
     """The processor average frequency mhz"""
 
-    throttling_celsius = base.Field('ThrottlingCelsius', adapter=int)
+    throttling_celsius = base.Field('ThrottlingCelsius',
+                                    adapter=rsd_lib_utils.int_or_none)
     """The processor throttling celsius"""
 
-    temperature_celsius = base.Field('TemperatureCelsius', adapter=int)
+    temperature_celsius = base.Field('TemperatureCelsius',
+                                     adapter=rsd_lib_utils.int_or_none)
     """The processor temperature celsius"""
 
-    consumed_power_watt = base.Field('ConsumedPowerWatt', adapter=int)
+    consumed_power_watt = base.Field('ConsumedPowerWatt',
+                                     adapter=rsd_lib_utils.int_or_none)
     """The processor consumed power watt"""
 
     health = base.Field('Health', adapter=list)

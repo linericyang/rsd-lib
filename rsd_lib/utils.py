@@ -18,4 +18,16 @@ def get_resource_identity(resource):
     if resource is None:
         return None
     else:
-        return resource.get('@odata.id')
+        return resource.get('@odata.id', None)
+
+
+def int_or_none(x):
+    """Given a value x it cast as int or None
+
+    :param x: The value to transform and return
+    :returns: Either None or x cast to an int
+
+    """
+    if x is None:
+        return None
+    return int(x)

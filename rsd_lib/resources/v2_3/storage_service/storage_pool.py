@@ -33,10 +33,14 @@ class StatusField(base.CompositeField):
 
 
 class CapacityField(base.CompositeField):
-    allocated_bytes = base.Field(['Data', 'AllocatedBytes'], adapter=int)
-    consumed_bytes = base.Field(['Data', 'ConsumedBytes'], adapter=int)
-    guaranteed_bytes = base.Field(['Data', 'GuaranteedBytes'], adapter=int)
-    provisioned_bytes = base.Field(['Data', 'ProvisionedBytes'], adapter=int)
+    allocated_bytes = base.Field(['Data', 'AllocatedBytes'],
+                                 adapter=rsd_lib_utils.int_or_none)
+    consumed_bytes = base.Field(['Data', 'ConsumedBytes'],
+                                adapter=rsd_lib_utils.int_or_none)
+    guaranteed_bytes = base.Field(['Data', 'GuaranteedBytes'],
+                                  adapter=rsd_lib_utils.int_or_none)
+    provisioned_bytes = base.Field(['Data', 'ProvisionedBytes'],
+                                   adapter=rsd_lib_utils.int_or_none)
 
 
 class CapacitySourcesField(base.ListField):

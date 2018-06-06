@@ -15,6 +15,8 @@
 
 from sushy.resources import base
 
+from rsd_lib import utils as rsd_lib_utils
+
 
 class MemoryLocationField(base.CompositeField):
     socket = base.Field('Socket', required=int)
@@ -49,13 +51,15 @@ class Memory(base.ResourceBase):
     memory_media = base.Field('MemoryMedia', adapter=list)
     """The memory media"""
 
-    capacity_mib = base.Field('CapacityMiB', adapter=int)
+    capacity_mib = base.Field('CapacityMiB', adapter=rsd_lib_utils.int_or_none)
     """The capacity of this memory in MiB"""
 
-    data_width_bits = base.Field('DataWidthBits', adapter=int)
+    data_width_bits = base.Field('DataWidthBits',
+                                 adapter=rsd_lib_utils.int_or_none)
     """The data width bits of this memory."""
 
-    bus_width_bits = base.Field('BusWidthBits', adapter=int)
+    bus_width_bits = base.Field('BusWidthBits',
+                                adapter=rsd_lib_utils.int_or_none)
     """The bus width bits of this memory."""
 
     manufacturer = base.Field('Manufacturer')
@@ -85,7 +89,8 @@ class Memory(base.ResourceBase):
     device_id = base.Field('DeviceID')
     """The device identity"""
 
-    rank_count = base.Field('RankCount', adapter=int)
+    rank_count = base.Field('RankCount',
+                            adapter=rsd_lib_utils.int_or_none)
     """The rank count of this memory"""
 
     device_locator = base.Field('DeviceLocator')
@@ -94,7 +99,8 @@ class Memory(base.ResourceBase):
     error_correction = base.Field('ErrorCorrection')
     """The error correction"""
 
-    operating_speed_mhz = base.Field('OperatingSpeedMhz', adapter=int)
+    operating_speed_mhz = base.Field('OperatingSpeedMhz',
+                                     adapter=rsd_lib_utils.int_or_none)
     """The operating speed of this memory in MHz"""
 
     operating_memory_modes = base.Field('OperatingMemoryModes', adapter=list)

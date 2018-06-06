@@ -57,7 +57,7 @@ class IPTransportDetailsField(base.ListField):
     transport_protocol = base.Field('TransportProtocol')
     ipv4_address = base.Field(['IPv4Address', 'Address'])
     ipv6_address = base.Field(['IPv6Address', 'Address'])
-    port = base.Field('Port', adapter=int)
+    port = base.Field('Port', adapter=rsd_lib_utils.int_or_none)
 
 
 class AuthenticationField(base.CompositeField):

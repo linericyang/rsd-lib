@@ -36,7 +36,8 @@ class CapacitySourcesField(base.ListField):
     providing_pools = base.Field('ProvidingPools',
                                  adapter=utils.get_members_identities)
     allocated_Bytes = base.Field(
-        ['ProvidedCapacity', 'Data', 'AllocatedBytes'], adapter=int)
+        ['ProvidedCapacity', 'Data', 'AllocatedBytes'],
+        adapter=rsd_lib_utils.int_or_none)
 
 
 class LinksField(base.CompositeField):
@@ -90,11 +91,12 @@ class Volume(base.ResourceBase):
     access_capabilities = base.Field('AccessCapabilities', adapter=list)
     """The access capabilities of volume"""
 
-    capacity_bytes = base.Field('CapacityBytes', adapter=int)
+    capacity_bytes = base.Field('CapacityBytes',
+                                adapter=rsd_lib_utils.int_or_none)
     """The capacity of volume in bytes"""
 
     allocated_Bytes = base.Field(['Capacity', 'Data', 'AllocatedBytes'],
-                                 adapter=int)
+                                 adapter=rsd_lib_utils.int_or_none)
     """The allocated capacity of volume in bytes"""
 
     capacity_sources = CapacitySourcesField('CapacitySources')

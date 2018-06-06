@@ -13,26 +13,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from sushy.resources import base
+import testtools
 
 from rsd_lib import utils as rsd_lib_utils
 
 
-class MemoryMetrics(base.ResourceBase):
+class UtilsTestCase(testtools.TestCase):
 
-    name = base.Field('Name')
-    """The metrics name"""
+    def test_get_resource_identity(self):
+        self.assertIsNone(rsd_lib_utils.get_resource_identity(None))
+        self.assertIsNone(rsd_lib_utils.get_resource_identity({}))
+        self.assertEqual(
+            '/redfish/v1/Systems/437XR1138R2/BIOS',
+            rsd_lib_utils.get_resource_identity({
+                "@odata.id": "/redfish/v1/Systems/437XR1138R2/BIOS"}))
 
-    description = base.Field('Description')
-    """The metrics description"""
-
-    identity = base.Field('Id')
-    """The metrics identity"""
-
-    temperature_celsius = base.Field(
-        ['Oem', 'Intel_RackScale', 'TemperatureCelsius'],
-        adapter=rsd_lib_utils.int_or_none)
-    """The memory temperature celsius"""
-
-    health = base.Field(['Oem', 'Intel_RackScale', 'Health'], adapter=list)
-    """The detail health information"""
+    def test_int_or_none(self):
+        self.assertIsNone(rsd_lib_utils.int_or_none(None))
+        self.assertEqual(0, rsd_lib_utils.int_or_none('0'))
+        self.assertEqual(1, rsd_lib_utils.int_or_none('1'))

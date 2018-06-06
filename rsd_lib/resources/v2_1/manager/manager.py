@@ -27,19 +27,22 @@ class StatusField(base.CompositeField):
 
 class GraphicalConsoleField(base.CompositeField):
     service_enabled = base.Field('ServiceEnabled')
-    max_concurrent_sessions = base.Field('MaxConcurrentSessions', adapter=int)
+    max_concurrent_sessions = base.Field('MaxConcurrentSessions',
+                                         adapter=rsd_lib_utils.int_or_none)
     connect_types_supported = base.Field('ConnectTypesSupported', adapter=list)
 
 
 class SerialConsoleField(base.CompositeField):
     service_enabled = base.Field('ServiceEnabled')
-    max_concurrent_sessions = base.Field('MaxConcurrentSessions', adapter=int)
+    max_concurrent_sessions = base.Field('MaxConcurrentSessions',
+                                         adapter=rsd_lib_utils.int_or_none)
     connect_types_supported = base.Field('ConnectTypesSupported', adapter=list)
 
 
 class CommandShellField(base.CompositeField):
     service_enabled = base.Field('ServiceEnabled')
-    max_concurrent_sessions = base.Field('MaxConcurrentSessions', adapter=int)
+    max_concurrent_sessions = base.Field('MaxConcurrentSessions',
+                                         adapter=rsd_lib_utils.int_or_none)
     connect_types_supported = base.Field('ConnectTypesSupported', adapter=list)
 
 

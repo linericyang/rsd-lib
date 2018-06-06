@@ -15,6 +15,8 @@
 
 from sushy.resources import base
 
+from rsd_lib import utils as rsd_lib_utils
+
 
 class Metrics(base.ResourceBase):
     name = base.Field('Name')
@@ -27,24 +29,27 @@ class Metrics(base.ResourceBase):
     """The metrics identity"""
 
     processor_bandwidth_percent = base.Field('ProcessorBandwidthPercent',
-                                             adapter=int)
+                                             adapter=rsd_lib_utils.int_or_none)
     """The processor bandwidth percent"""
 
     memory_bandwidth_percent = base.Field('MemoryBandwidthPercent',
-                                          adapter=int)
+                                          adapter=rsd_lib_utils.int_or_none)
     """The memory bandwidth percent"""
 
     memory_throttled_cycles_percent = base.Field(
-        'MemoryThrottledCyclesPercent', adapter=int)
+        'MemoryThrottledCyclesPercent', adapter=rsd_lib_utils.int_or_none)
     """The memory throttled cycles percent"""
 
-    processor_power_watt = base.Field('ProcessorPowerWatt', adapter=int)
+    processor_power_watt = base.Field('ProcessorPowerWatt',
+                                      adapter=rsd_lib_utils.int_or_none)
     """The processor power watt"""
 
-    memory_power_watt = base.Field('MemoryPowerWatt', adapter=int)
+    memory_power_watt = base.Field('MemoryPowerWatt',
+                                   adapter=rsd_lib_utils.int_or_none)
     """The memory power watt"""
 
-    io_bandwidth_gbps = base.Field('IOBandwidthGBps', adapter=int)
+    io_bandwidth_gbps = base.Field('IOBandwidthGBps',
+                                   adapter=rsd_lib_utils.int_or_none)
     """The io bandwidth GBps"""
 
     health = base.Field('Health', adapter=list)

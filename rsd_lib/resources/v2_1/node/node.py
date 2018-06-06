@@ -91,7 +91,8 @@ class MemorySummaryField(base.CompositeField):
     status = StatusField('Status')
     """The memory status"""
 
-    size_gib = base.Field('TotalSystemMemoryGiB', adapter=int)
+    size_gib = base.Field('TotalSystemMemoryGiB',
+                          adapter=rsd_lib_utils.int_or_none)
     """The size of memory of the node in GiB.
 
     This signifies the total installed, operating system-accessible memory
@@ -103,7 +104,7 @@ class ProcessorSummaryField(base.CompositeField):
     status = StatusField('Status')
     """The processor status"""
 
-    count = base.Field('Count', adapter=int)
+    count = base.Field('Count', adapter=rsd_lib_utils.int_or_none)
     """The number of CPUs in the node."""
 
     model = base.Field('Model')

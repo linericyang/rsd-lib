@@ -17,6 +17,8 @@ import logging
 
 from sushy.resources import base
 
+from rsd_lib import utils as rsd_lib_utils
+
 LOG = logging.getLogger(__name__)
 
 
@@ -71,7 +73,8 @@ class Switch(base.ResourceBase):
     is_managed = base.Field('IsManaged')
     """The switch managed state"""
 
-    total_switch_width = base.Field('TotalSwitchWidth', adapter=int)
+    total_switch_width = base.Field('TotalSwitchWidth',
+                                    adapter=rsd_lib_utils.int_or_none)
     """The switch total switch width"""
 
     indicator_led = base.Field('IndicatorLED')
