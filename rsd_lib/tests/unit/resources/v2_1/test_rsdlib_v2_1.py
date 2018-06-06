@@ -19,6 +19,7 @@ import testtools
 
 from rsd_lib.resources import v2_1
 from rsd_lib.resources.v2_1.chassis import chassis
+from rsd_lib.resources.v2_1.ethernet_switch import ethernet_switch
 from rsd_lib.resources.v2_1.fabric import fabric
 from rsd_lib.resources.v2_1.manager import manager
 from rsd_lib.resources.v2_1.node import node
@@ -46,6 +47,8 @@ class RSDLibV2_1TestCase(testtools.TestCase):
                          self.rsd._storage_service_path)
         self.assertEqual("/redfish/v1/Fabrics", self.rsd._fabrics_path)
         self.assertEqual("/redfish/v1/Managers", self.rsd._managers_path)
+        self.assertEqual("/redfish/v1/EthernetSwitches",
+                         self.rsd._ethernet_switches_path)
 
     @mock.patch.object(system, 'SystemCollection', autospec=True)
     def test_get_system_collection(self, mock_system_collection):
@@ -132,5 +135,23 @@ class RSDLibV2_1TestCase(testtools.TestCase):
         self.rsd.get_manager('fake-manager-id')
         mock_manager_service.assert_called_once_with(
             self.rsd._conn, 'fake-manager-id',
+            redfish_version=self.rsd.redfish_version
+        )
+
+    @mock.patch.object(ethernet_switch,
+                       'EthernetSwitchCollection',
+                       autospec=True)
+    def test_get_ethernet_switch_collection(self,
+                                            mock_ethernet_switch_collection):
+        self.rsd.get_ethernet_switch_collection()
+        mock_ethernet_switch_collection.assert_called_once_with(
+            self.rsd._conn, '/redfish/v1/EthernetSwitches',
+            redfish_version=self.rsd.redfish_version)
+
+    @mock.patch.object(ethernet_switch, 'EthernetSwitch', autospec=True)
+    def test_get_ethernet_switch(self, mock_ethernet_switch_service):
+        self.rsd.get_ethernet_switch('fake-ethernet-switch-id')
+        mock_ethernet_switch_service.assert_called_once_with(
+            self.rsd._conn, 'fake-ethernet-switch-id',
             redfish_version=self.rsd.redfish_version
         )

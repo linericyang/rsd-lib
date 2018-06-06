@@ -34,6 +34,9 @@
     "Fabrics" : {
         "@odata.id" : "/redfish/v1/Fabrics"
     },
+    "EthernetSwitches": {
+        "@odata.id": "/redfish/v1/EthernetSwitches"
+    },
     "Links": {
         "Sessions": {
             "@odata.id": "/redfish/v1/SessionService/Sessions"
