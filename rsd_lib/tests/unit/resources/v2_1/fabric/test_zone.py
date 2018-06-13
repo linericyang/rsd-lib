@@ -54,7 +54,28 @@ class ZoneTestCase(testtools.TestCase):
                   'endpoint.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
         endpoints = self.zone_inst.get_endpoints()
-        self.assertEqual(endpoints[0].identity, 'NVMeDrivePF1')
+        self.assertEqual('NVMeDrivePF1', endpoints[0].identity)
+        self.assertEqual(2, len(endpoints))
+
+    def test_update(self):
+        self.zone_inst.update(
+            ['/redfish/v1/Fabrics/PCIe/Endpoints/NVMeDrivePF1'])
+        self.zone_inst._conn.patch.assert_called_once_with(
+            '/redfish/v1/Fabrics/PCIe/Zones/1',
+            data={"Endpoints": [{"@odata.id": "/redfish/v1/Fabrics/PCIe/"
+                                              "Endpoints/NVMeDrivePF1"}]})
+
+        self.zone_inst._conn.patch.reset_mock()
+        self.zone_inst.update(
+            ['/redfish/v1/Fabrics/PCIe/Endpoints/HostRootComplex1',
+             '/redfish/v1/Fabrics/PCIe/Endpoints/NVMeDrivePF2'])
+        self.zone_inst._conn.patch.assert_called_once_with(
+            '/redfish/v1/Fabrics/PCIe/Zones/1',
+            data={"Endpoints":
+                  [{"@odata.id": "/redfish/v1/Fabrics/PCIe/Endpoints/"
+                                 "HostRootComplex1"},
+                   {"@odata.id": "/redfish/v1/Fabrics/PCIe/Endpoints/"
+                                 "NVMeDrivePF2"}]})
 
 
 class ZoneCollectionTestCase(testtools.TestCase):

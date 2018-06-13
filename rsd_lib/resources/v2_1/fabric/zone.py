@@ -71,6 +71,18 @@ class Zone(base.ResourceBase):
         return [endpoint.Endpoint(self._conn, id_, self.redfish_version) for
                 id_ in self.links.endpoint_identities]
 
+    def update(self, endpoints):
+        """Add or remove Endpoints from a Zone
+
+        User have to provide a full representation of Endpoints array. A
+        partial update (single element update/append/detele) is not supported.
+        :param endpoints: a full representation of Endpoints array
+        """
+        data = {"Endpoints": []}
+        data['Endpoints'] = [{'@odata.id': endpoint} for endpoint in endpoints]
+
+        self._conn.patch(self.path, data=data)
+
 
 class ZoneCollection(base.ResourceCollectionBase):
 
