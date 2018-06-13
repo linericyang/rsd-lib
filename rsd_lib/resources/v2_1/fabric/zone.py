@@ -63,13 +63,23 @@ class Zone(base.ResourceBase):
         super(Zone, self).__init__(connector, identity,
                                    redfish_version)
 
-    def get_endpoints(self):
+    @property
+    def endpoints(self):
         """Return a list of Endpoints present in the Zone
 
-        :returns: A list of Endpoint objects
+        It is calculated once when it is queried for the first time. On
+        refresh, this property is reset.
         """
-        return [endpoint.Endpoint(self._conn, id_, self.redfish_version) for
-                id_ in self.links.endpoint_identities]
+        if self._endpoints is None:
+            self._endpoints = [
+                endpoint.Endpoint(self._conn, id_, self.redfish_version)
+                for id_ in self.links.endpoint_identities]
+
+        return self._endpoints
+
+    def refresh(self):
+        super(Zone, self).refresh()
+        self._endpoints = None
 
     def update(self, endpoints):
         """Add or remove Endpoints from a Zone

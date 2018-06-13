@@ -48,14 +48,54 @@ class ZoneTestCase(testtools.TestCase):
         self.assertEqual('Enabled', self.zone_inst.status.state)
         self.assertEqual('OK', self.zone_inst.status.health)
 
-    def test_get_endpoints(self):
+    def test_endpoints(self):
+        # check for the underneath variable value
+        self.assertIsNone(self.zone_inst._endpoints)
+        # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'endpoint.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        endpoints = self.zone_inst.get_endpoints()
-        self.assertEqual('NVMeDrivePF1', endpoints[0].identity)
-        self.assertEqual(2, len(endpoints))
+        # | WHEN |
+        actual_endpoints = self.zone_inst.endpoints
+        # | THEN |
+        self.assertEqual('NVMeDrivePF1', actual_endpoints[0].identity)
+        self.assertEqual(2, len(actual_endpoints))
+        self.conn.get.return_value.json.assert_called_with()
+
+        # reset mock
+        self.conn.get.return_value.json.reset_mock()
+        # | WHEN & THEN |
+        # tests for same object on invoking subsequently
+        self.assertIs(actual_endpoints,
+                      self.zone_inst.endpoints)
+        self.conn.get.return_value.json.assert_not_called()
+
+    def test_endpoints_on_refresh(self):
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'endpoint.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertEqual('NVMeDrivePF1', self.zone_inst.endpoints[0].identity)
+        self.assertEqual(2, len(self.zone_inst.endpoints))
+
+        # On refreshing the fabric instance...
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'zone.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        self.zone_inst.refresh()
+
+        # | WHEN & THEN |
+        self.assertIsNone(self.zone_inst._endpoints)
+
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'endpoint.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertEqual('NVMeDrivePF1', self.zone_inst.endpoints[0].identity)
+        self.assertEqual(2, len(self.zone_inst.endpoints))
 
     def test_update(self):
         self.zone_inst.update(
