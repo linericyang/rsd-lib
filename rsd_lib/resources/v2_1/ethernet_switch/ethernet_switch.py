@@ -15,9 +15,11 @@
 
 import logging
 
+from sushy import exceptions
 from sushy.resources import base
 from sushy import utils
 
+from rsd_lib.resources.v2_1.ethernet_switch import port
 from rsd_lib import utils as rsd_lib_utils
 
 LOG = logging.getLogger(__name__)
@@ -58,8 +60,8 @@ class EthernetSwitch(base.ResourceBase):
     model = base.Field('Model')
     """The ethernet switch model"""
 
-    manufacturing_data = base.Field('ManufacturingData')
-    """The ethernet switch manufacturing data"""
+    manufacturing_date = base.Field('ManufacturingDate')
+    """The ethernet switch manufacturing date"""
 
     seria_number = base.Field('SerialNumber')
     """The ethernet switch serial number"""
@@ -83,8 +85,7 @@ class EthernetSwitch(base.ResourceBase):
                       adapter=rsd_lib_utils.get_resource_identity)
     """The ethernet switch ACLs"""
 
-    ports = base.Field('Ports', default=(),
-                       adapter=rsd_lib_utils.get_resource_identity)
+    _ports = None  # ref to PortCollection instance
     """The ethernet switch ports"""
 
     links = LinksField('Links')
@@ -101,6 +102,33 @@ class EthernetSwitch(base.ResourceBase):
         super(EthernetSwitch, self).__init__(conncetor,
                                              identity,
                                              redfish_version)
+
+    def _get_port_collection_path(self):
+        """Helper functionto find the PortCollection path"""
+        port_col = self.json.get('Ports')
+        if not port_col:
+            raise exceptions.MissingAttributeError(attribute='Ports',
+                                                   resource=self._path)
+        return rsd_lib_utils.get_resource_identity(port_col)
+
+    @property
+    def ports(self):
+        """Property to provide reference to `PortCollection` instance
+
+        It is calculated once when it is queried for the first time. On
+        refresh, this property is reset.
+        """
+        if self._ports is None:
+            self._ports = port.PortCollection(
+                self._conn, self._get_port_collection_path(),
+                redfish_version=self.redfish_version
+            )
+
+        return self._ports
+
+    def refresh(self):
+        super(EthernetSwitch, self).refresh()
+        self._ports = None
 
 
 class EthernetSwitchCollection(base.ResourceCollectionBase):

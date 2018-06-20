@@ -1,3 +1,6 @@
+# Copyright 2017 Intel, Inc.
+# All Rights Reserved.
+#
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
 #    a copy of the License at
@@ -13,16 +16,17 @@
 import json
 
 import mock
-
-from sushy.tests.unit import base
+from sushy import exceptions
+import testtools
 
 from rsd_lib.resources.v2_1.ethernet_switch import ethernet_switch
+from rsd_lib.resources.v2_1.ethernet_switch import port
 
 
-class TestEthernetSwtich(base.TestCase):
+class EthernetSwtichTestCase(testtools.TestCase):
 
     def setUp(self):
-        super(TestEthernetSwtich, self).setUp()
+        super(EthernetSwtichTestCase, self).setUp()
         self.conn = mock.Mock()
 
         with open('rsd_lib/tests/unit/json_samples/v2_1/ethernet_switch.json',
@@ -34,7 +38,7 @@ class TestEthernetSwtich(base.TestCase):
             '/redfish/v1/EthernetSwitches/Switch1',
             redfish_version='1.0.2')
 
-    def test_parse_attributes(self):
+    def test__parse_attributes(self):
         self.ethernet_switch_inst._parse_attributes()
         self.assertEqual('1.0.2', self.ethernet_switch_inst.redfish_version)
         self.assertEqual('Switch1', self.ethernet_switch_inst.identity)
@@ -44,7 +48,7 @@ class TestEthernetSwtich(base.TestCase):
         self.assertEqual('Quanta', self.ethernet_switch_inst.manufacturer)
         self.assertEqual('ly8_rangley', self.ethernet_switch_inst.model)
         self.assertEqual('02/21/2015 00:00:00',
-                         self.ethernet_switch_inst.manufacturing_data)
+                         self.ethernet_switch_inst.manufacturing_date)
         self.assertEqual('2M220100SL', self.ethernet_switch_inst.seria_number)
         self.assertEqual('1LY8UZZ0007', self.ethernet_switch_inst.part_number)
         self.assertEqual('ONIE', self.ethernet_switch_inst.firmware_name)
@@ -54,22 +58,81 @@ class TestEthernetSwtich(base.TestCase):
         self.assertEqual('OK', self.ethernet_switch_inst.status.health)
         self.assertEqual('/redfish/v1/EthernetSwitches/Switch1/ACLs',
                          self.ethernet_switch_inst.acls)
-        self.assertEqual('/redfish/v1/EthernetSwitches/Switch1/Ports',
-                         self.ethernet_switch_inst.ports)
+        self.assertIsNone(self.ethernet_switch_inst._ports)
         self.assertEqual('/redfish/v1/Chassis/FabricModule1',
                          self.ethernet_switch_inst.links.chassis)
-        self.assertEqual(('/redfish/v1/EthernetSwitches/Switch1/Ports',),
+        self.assertEqual(('/redfish/v1/Managers/Manager1',),
                          self.ethernet_switch_inst.links.managed_by)
 
+    def test__get_port_collection_path(self):
+        expected = '/redfish/v1/EthernetSwitches/Switch1/Ports'
+        result = self.ethernet_switch_inst._get_port_collection_path()
+        self.assertEqual(expected, result)
 
-class TestEthernetSwitchCollection(base.TestCase):
+    def test__get_port_collection_path_missing_attr(self):
+        self.ethernet_switch_inst._json.pop('Ports')
+        self.assertRaisesRegex(
+            exceptions.MissingAttributeError, 'attribute Ports',
+            self.ethernet_switch_inst._get_port_collection_path)
+
+    def test_ports(self):
+        # check for the underpath variable value
+        self.assertIsNone(self.ethernet_switch_inst._ports)
+        # | GIVEN |
+        self.conn.get.return_value.json.reset_mock()
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_port_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN |
+        actual_ports = self.ethernet_switch_inst.ports
+        # | THEN |
+        self.assertIsInstance(actual_ports,
+                              port.PortCollection)
+        self.conn.get.return_value.json.assert_called_once_with()
+
+        # reset mock
+        self.conn.get.return_value.json.reset_mock()
+        # | WHEN & THEN |
+        # tests for same object on invoking subsequently
+        self.assertIs(actual_ports,
+                      self.ethernet_switch_inst.ports)
+        self.conn.get.return_value.json.assert_not_called()
+
+    def test_ports_on_refresh(self):
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_port_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.ethernet_switch_inst.ports,
+                              port.PortCollection)
+
+        # On refreshing the port instance...
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        self.ethernet_switch_inst.refresh()
+
+        # | WHEN & THEN |
+        self.assertIsNone(self.ethernet_switch_inst._ports)
+
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_port_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.ethernet_switch_inst.ports,
+                              port.PortCollection)
+
+
+class EthernetSwitchCollectionTestCase(testtools.TestCase):
 
     def setUp(self):
-        super(TestEthernetSwitchCollection, self).setUp()
+        super(EthernetSwitchCollectionTestCase, self).setUp()
         self.conn = mock.Mock()
 
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
-                  'manager_collection.json', 'r') as f:
+                  'ethernet_switch_collection.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
 
         self.ethernet_switch_col = ethernet_switch.EthernetSwitchCollection(
@@ -77,17 +140,18 @@ class TestEthernetSwitchCollection(base.TestCase):
             'redfish/v1/EthernetSwitches',
             redfish_version='1.0.2')
 
-    def test_parse_attributes(self):
+    def test__parse_attributes(self):
         self.ethernet_switch_col._parse_attributes()
         self.assertEqual('1.0.2', self.ethernet_switch_col.redfish_version)
         self.assertEqual('Ethernet Switches Collection',
                          self.ethernet_switch_col.name)
-        self.assertIn(('/redfish/v1/EthernetSwitches/Switch1',),
-                      self.ethernet_switch_col.members_identities)
+        self.assertEqual(('/redfish/v1/EthernetSwitches/Switch1',),
+                         self.ethernet_switch_col.members_identities)
 
     @mock.patch.object(ethernet_switch, 'EthernetSwitch', autospec=True)
     def test_get_member(self, mock_ethernet_switch):
-        self.manager_col.get_member('/redfish/v1/EthernetSwitches/Switch1')
+        self.ethernet_switch_col.get_member(
+            '/redfish/v1/EthernetSwitches/Switch1')
 
         mock_ethernet_switch.assert_called_once_with(
             self.ethernet_switch_col._conn,
@@ -99,5 +163,5 @@ class TestEthernetSwitchCollection(base.TestCase):
     def test_get_members(self, mock_ethernet_switch):
         members = self.ethernet_switch_col.get_members()
         self.assertEqual(mock_ethernet_switch.call_count, 1)
-        self.assertInstance(members, list)
+        self.assertIsInstance(members, list)
         self.assertEqual(1, len(members))
