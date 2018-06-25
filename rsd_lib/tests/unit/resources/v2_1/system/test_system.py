@@ -21,6 +21,7 @@ from sushy import exceptions
 from sushy.resources.system import system as sushy_system
 
 from rsd_lib.resources.v2_1.system import memory
+from rsd_lib.resources.v2_1.system import storage_subsystem
 from rsd_lib.resources.v2_1.system import system
 
 
@@ -98,6 +99,65 @@ class SystemTestCase(testtools.TestCase):
         # | WHEN & THEN |
         self.assertIsInstance(self.system_inst.memory,
                               memory.MemoryCollection)
+
+    def test__get_storage_collection_path(self):
+        self.assertEqual(
+            '/redfish/v1/Systems/1/Storage',
+            self.system_inst._get_storage_subsystem_collection_path())
+
+    def test__get_storage_collection_path_missing_systems_attr(self):
+        self.system_inst._json.pop('Storage')
+        with self.assertRaisesRegex(
+            exceptions.MissingAttributeError, 'attribute StorageSubsystem'):
+            self.system_inst._get_storage_subsystem_collection_path()
+
+    def test_storage_subsystem(self):
+        # check for the underneath variable value
+        self.assertIsNone(self.system_inst._storage_subsystem)
+        # | GIVEN |
+        self.conn.get.return_value.json.reset_mock()
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'storage_subsystem_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN |
+        actual_storage_subsystem_col = self.system_inst.storage_subsystem
+        # | THEN |
+        self.assertIsInstance(actual_storage_subsystem_col,
+                              storage_subsystem.StorageSubsystemCollection)
+        self.conn.get.return_value.json.assert_called_once_with()
+
+        # reset mock
+        self.conn.get.return_value.json.reset_mock()
+        # | WHEN & THEN |
+        # tests for same object on invoking subsequently
+        self.assertIs(actual_storage_subsystem_col,
+                      self.system_inst.storage_subsystem)
+        self.conn.get.return_value.json.assert_not_called()
+
+    def test_storage_subsystem_on_refresh(self):
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'storage_subsystem_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.system_inst.storage_subsystem,
+                              storage_subsystem.StorageSubsystemCollection)
+
+        # on refreshing the system instance...
+        with open('rsd_lib/tests/unit/json_samples/v2_1/system.json',
+                  'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        self.system_inst.refresh()
+        # | WHEN & THEN |
+        self.assertIsNone(self.system_inst._storage_subsystem)
+
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'storage_subsystem_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.system_inst.storage_subsystem,
+                              storage_subsystem.StorageSubsystemCollection)
 
 
 class SystemCollectionTestCase(testtools.TestCase):
