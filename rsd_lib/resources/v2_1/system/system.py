@@ -17,6 +17,7 @@ from sushy import exceptions
 from sushy.resources.system import system
 
 from rsd_lib.resources.v2_1.system import memory
+from rsd_lib.resources.v2_1.system import network_interface
 from rsd_lib.resources.v2_1.system import storage_subsystem
 from rsd_lib import utils
 
@@ -25,6 +26,7 @@ class System(system.System):
 
     _memory = None  # ref to System memory collection instance
     _storage_subsystem = None  # ref to storage subsystem collection instance
+    _network_interface = None  # ref to network interface collection instance
 
     def _get_memory_collection_path(self):
         """Helper function to find the memory path"""
@@ -71,10 +73,36 @@ class System(system.System):
                     redfish_version=self.redfish_version)
         return self._storage_subsystem
 
+    def _get_network_interface_collection_path(self):
+        """Helper function to find the network interface path"""
+        network_interface_col = self.json.get('EthernetInterfaces')
+        if not network_interface_col:
+            raise exceptions.MissingAttributeError(
+                attribute='NetworkInterface',
+                resource=self._path
+            )
+        return utils.get_resource_identity(network_interface_col)
+
+    @property
+    def network_interface(self):
+        """Property to provide reference to `NetworkInterface` instance
+
+        It is calculated once the first time it is queried. On refresh,
+        this property is reset.
+        """
+        if self._network_interface is None:
+            self._network_interface = network_interface.\
+                NetworkInterfaceCollection(
+                    self._conn, self._get_network_interface_collection_path(),
+                    redfish_version=self.redfish_version
+                )
+        return self._network_interface
+
     def refresh(self):
         super(System, self).refresh()
         self._memory = None
         self._storage_subsystem = None
+        self._network_interface = None
 
 
 class SystemCollection(system.SystemCollection):

@@ -21,6 +21,7 @@ from sushy import exceptions
 from sushy.resources.system import system as sushy_system
 
 from rsd_lib.resources.v2_1.system import memory
+from rsd_lib.resources.v2_1.system import network_interface
 from rsd_lib.resources.v2_1.system import storage_subsystem
 from rsd_lib.resources.v2_1.system import system
 
@@ -158,6 +159,65 @@ class SystemTestCase(testtools.TestCase):
         # | WHEN & THEN |
         self.assertIsInstance(self.system_inst.storage_subsystem,
                               storage_subsystem.StorageSubsystemCollection)
+
+    def test__get_network_interface_collection_path(self):
+        self.assertEqual(
+            '/redfish/v1/Systems/437XR1138R2/EthernetInterfaces',
+            self.system_inst._get_network_interface_collection_path())
+
+    def test__get_network_interface_collection_path_missing_systems_attr(self):
+        self.system_inst._json.pop('EthernetInterfaces')
+        with self.assertRaisesRegex(
+            exceptions.MissingAttributeError, 'attribute NetworkInterface'):
+            self.system_inst._get_network_interface_collection_path()
+
+    def test_network_interface(self):
+        # check for the underneath variable value
+        self.assertIsNone(self.system_inst._network_interface)
+        # | GIVEN |
+        self.conn.get.return_value.json.reset_mock()
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'system_network_interface_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN |
+        actual_network_interface_col = self.system_inst.network_interface
+        # | THEN |
+        self.assertIsInstance(actual_network_interface_col,
+                              network_interface.NetworkInterfaceCollection)
+        self.conn.get.return_value.json.assert_called_once_with()
+
+        # reset mock
+        self.conn.get.return_value.json.reset_mock()
+        # | WHEN & THEN |
+        # tests for same object on invoking subsequently
+        self.assertIs(actual_network_interface_col,
+                      self.system_inst.network_interface)
+        self.conn.get.return_value.json.assert_not_called()
+
+    def test_network_interface_on_refresh(self):
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'system_network_interface_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.system_inst.network_interface,
+                              network_interface.NetworkInterfaceCollection)
+
+        # on refreshing the system instance...
+        with open('rsd_lib/tests/unit/json_samples/v2_1/system.json',
+                  'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        self.system_inst.refresh()
+        # | WHEN & THEN |
+        self.assertIsNone(self.system_inst._network_interface)
+
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'system_network_interface_collection.json', 'r') as f:
+            self.conn.get.return_value.son.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.system_inst.network_interface,
+                              network_interface.NetworkInterfaceCollection)
 
 
 class SystemCollectionTestCase(testtools.TestCase):
