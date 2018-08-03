@@ -17,12 +17,14 @@ from sushy import exceptions
 from sushy.resources.system import system
 
 from rsd_lib.resources.v2_1.system import memory
+from rsd_lib.resources.v2_1.system import storage_subsystem
 from rsd_lib import utils
 
 
 class System(system.System):
 
     _memory = None  # ref to System memory collection instance
+    _storage_subsystem = None  # ref to storage subsystem collection instance
 
     def _get_memory_collection_path(self):
         """Helper function to find the memory path"""
@@ -46,9 +48,33 @@ class System(system.System):
 
         return self._memory
 
+    def _get_storage_subsystem_collection_path(self):
+        """Helper function to find the storage subsystem path"""
+        storage_subsystem_col = self.json.get('Storage')
+        if not storage_subsystem_col:
+            raise exceptions.MissingAttributeError(
+                attribute='StorageSubsystem',
+                resource=self._path)
+        return utils.get_resource_identity(storage_subsystem_col)
+
+    @property
+    def storage_subsystem(self):
+        """Property to provide reference to `StorageSubsystem` instance
+
+        It is calculated once the first time it is queried. On refresh,
+        this property is reset.
+        """
+        if self._storage_subsystem is None:
+            self._storage_subsystem = storage_subsystem.\
+                StorageSubsystemCollection(
+                    self._conn, self._get_storage_subsystem_collection_path(),
+                    redfish_version=self.redfish_version)
+        return self._storage_subsystem
+
     def refresh(self):
         super(System, self).refresh()
         self._memory = None
+        self._storage_subsystem = None
 
 
 class SystemCollection(system.SystemCollection):
