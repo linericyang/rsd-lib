@@ -19,6 +19,7 @@ from sushy import exceptions
 from sushy.resources import base
 from sushy import utils
 
+from rsd_lib.resources.v2_1.ethernet_switch import acl
 from rsd_lib.resources.v2_1.ethernet_switch import port
 from rsd_lib import utils as rsd_lib_utils
 
@@ -81,8 +82,7 @@ class EthernetSwitch(base.ResourceBase):
     status = StatusField('Status')
     """The ethernet switch status"""
 
-    acls = base.Field('ACLs', default=(),
-                      adapter=rsd_lib_utils.get_resource_identity)
+    _acls = None  # ref to ACLCollection instance
     """The ethernet switch ACLs"""
 
     _ports = None  # ref to PortCollection instance
@@ -104,7 +104,7 @@ class EthernetSwitch(base.ResourceBase):
                                              redfish_version)
 
     def _get_port_collection_path(self):
-        """Helper functionto find the PortCollection path"""
+        """Helper function to find the PortCollection path"""
         port_col = self.json.get('Ports')
         if not port_col:
             raise exceptions.MissingAttributeError(attribute='Ports',
@@ -126,9 +126,33 @@ class EthernetSwitch(base.ResourceBase):
 
         return self._ports
 
+    def _get_acl_collection_path(self):
+        """Helper function to find the ACLCollection path"""
+        acl_col = self.json.get('ACLs')
+        if not acl_col:
+            raise exceptions.MissingAttributeError(attribute='ACLs',
+                                                   resource=self._path)
+        return rsd_lib_utils.get_resource_identity(acl_col)
+
+    @property
+    def acls(self):
+        """Property to provide reference to `ACLCollection` instance
+
+        It is calculated once when it is queried for the first time. On
+        refresh, this property is reset.
+        """
+        if self._acls is None:
+            self._acls = acl.ACLCollection(
+                self._conn, self._get_acl_collection_path(),
+                redfish_version=self.redfish_version
+            )
+
+        return self._acls
+
     def refresh(self):
         super(EthernetSwitch, self).refresh()
         self._ports = None
+        self._acls = None
 
 
 class EthernetSwitchCollection(base.ResourceCollectionBase):

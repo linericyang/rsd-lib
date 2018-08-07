@@ -19,6 +19,7 @@ import mock
 from sushy import exceptions
 import testtools
 
+from rsd_lib.resources.v2_1.ethernet_switch import acl
 from rsd_lib.resources.v2_1.ethernet_switch import ethernet_switch
 from rsd_lib.resources.v2_1.ethernet_switch import port
 
@@ -56,8 +57,7 @@ class EthernetSwtichTestCase(testtools.TestCase):
         self.assertEqual('TOR', self.ethernet_switch_inst.role)
         self.assertEqual('Enabled', self.ethernet_switch_inst.status.state)
         self.assertEqual('OK', self.ethernet_switch_inst.status.health)
-        self.assertEqual('/redfish/v1/EthernetSwitches/Switch1/ACLs',
-                         self.ethernet_switch_inst.acls)
+        self.assertIsNone(self.ethernet_switch_inst._acls)
         self.assertIsNone(self.ethernet_switch_inst._ports)
         self.assertEqual('/redfish/v1/Chassis/FabricModule1',
                          self.ethernet_switch_inst.links.chassis)
@@ -123,6 +123,63 @@ class EthernetSwtichTestCase(testtools.TestCase):
         # | WHEN & THEN |
         self.assertIsInstance(self.ethernet_switch_inst.ports,
                               port.PortCollection)
+
+    def test__get_acl_collection_path(self):
+        self.assertEqual('/redfish/v1/EthernetSwitches/Switch1/ACLs',
+                         self.ethernet_switch_inst._get_acl_collection_path())
+
+    def test__get_acl_collection_path_missing_attr(self):
+        self.ethernet_switch_inst._json.pop('ACLs')
+        with self.assertRaisesRegex(
+            exceptions.MissingAttributeError, 'attribute ACLs'):
+            self.ethernet_switch_inst._get_acl_collection_path()
+
+    def test_acl(self):
+        # check for the underneath variable value
+        self.assertIsNone(self.ethernet_switch_inst._acls)
+        # | GIVEN |
+        self.conn.get.return_value.json.reset_mock()
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_acl_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN |
+        actual_acls_col = self.ethernet_switch_inst.acls
+        # | THEN |
+        self.assertIsInstance(actual_acls_col,
+                              acl.ACLCollection)
+        self.conn.get.return_value.json.assert_called_once_with()
+
+        # reset mock
+        self.conn.get.return_value.json.reset_mock()
+        # | WHEN & THEN |
+        self.assertIs(actual_acls_col,
+                      self.ethernet_switch_inst.acls)
+        self.conn.get.return_value.json.assert_not_called()
+
+    def test_acls_on_refresh(self):
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_acl_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.ethernet_switch_inst.acls,
+                              acl.ACLCollection)
+
+        # On refreshing...
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        self.ethernet_switch_inst.refresh()
+        # | WHEN & THEN |
+        self.assertIsNone(self.ethernet_switch_inst._acls)
+
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_acl_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.ethernet_switch_inst.acls,
+                              acl.ACLCollection)
 
 
 class EthernetSwitchCollectionTestCase(testtools.TestCase):

@@ -109,35 +109,34 @@ class PortCollectionTestCase(testtools.TestCase):
                 'ethernet_switch_port_collection.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
             self.port_col = port.PortCollection(
-                self.conn, '/redfish/v1/EthernetSwitch/Ports',
+                self.conn, '/redfish/v1/EthernetSwitches/Ports',
                 redfish_version='1.0.2')
 
-            def test__parse_attributes(self):
-                self.port_col._parse_attributes()
-                self.assertEqual('1.0.2', self.port_col.redfish_version)
-                self.assertEqual(
-                    'Ethernet Switch Port Collection',
-                    self.port_col.name)
-                self.assertEqual(
-                    ('/redfish/v1/EthernetSwitches/Switch1/Ports/Port1'),
-                    self.port_col.members_identities)
+    def test__parse_attributes(self):
+        self.port_col._parse_attributes()
+        self.assertEqual('1.0.2', self.port_col.redfish_version)
+        self.assertEqual(
+            'Ethernet Switch Port Collection',
+            self.port_col.name)
+        self.assertEqual(
+            ('/redfish/v1/EthernetSwitches/Switch1/Ports/Port1',),
+            self.port_col.members_identities)
 
-            @mock.patch.object(port, 'Port', autospec=True)
-            def test_get_member(self, mock_port):
-                self.port_col.get_member(
-                    '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1'
-                )
-                mock_port.assert_called_once_with(
-                    self.port_col._conn,
-                    '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1',
-                    redfish_version=self.port_col.redfish_version)
+    @mock.patch.object(port, 'Port', autospec=True)
+    def test_get_member(self, mock_port):
+        self.port_col.get_member(
+            '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1')
+        mock_port.assert_called_once_with(
+            self.port_col._conn,
+            '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1',
+            redfish_version=self.port_col.redfish_version)
 
-            @mock.patch.object(port, 'Port', autospec=True)
-            def test_get_members(self, mock_port):
-                members = self.port_col.get_members()
-                mock_port.assert_called_with(
-                    self.port_col.__conn,
-                    '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1',
-                    redfish_version=self.port_col.redfish_version)
-                self.assertIsInstance(members, list)
-                self.assertEqual(1, len(members))
+    @mock.patch.object(port, 'Port', autospec=True)
+    def test_get_members(self, mock_port):
+        members = self.port_col.get_members()
+        mock_port.assert_called_with(
+            self.port_col._conn,
+            '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1',
+            redfish_version=self.port_col.redfish_version)
+        self.assertIsInstance(members, list)
+        self.assertEqual(1, len(members))
