@@ -21,6 +21,7 @@ import testtools
 
 from rsd_lib.resources.v2_1.ethernet_switch import port
 from rsd_lib.resources.v2_1.ethernet_switch import static_mac
+from rsd_lib.resources.v2_1.ethernet_switch import vlan
 
 
 class PortTestCase(testtools.TestCase):
@@ -80,9 +81,7 @@ class PortTestCase(testtools.TestCase):
         self.assertEqual('Logical', self.port_inst.port_class)
         self.assertEqual('LinkAggregationStatic', self.port_inst.port_mode)
         self.assertEqual('Upstream', self.port_inst.port_type)
-        self.assertEqual(
-            '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1/VLANs',
-            self.port_inst.vlans)
+        self.assertIsNone(self.port_inst._vlans)
         self.assertIsNone(self.port_inst._static_macs)
         self.assertEqual(
             '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1/VLANs/VLAN1',
@@ -155,6 +154,63 @@ class PortTestCase(testtools.TestCase):
         # | WHEN & THEN |
         self.assertIsInstance(self.port_inst.static_macs,
                               static_mac.StaticMACCollection)
+
+    def test__get_vlan_collection_path(self):
+        self.assertEqual(
+            '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1/VLANs',
+            self.port_inst._get_vlan_collection_path())
+
+    def test__get_vlan_collection_path_missing_attr(self):
+        self.port_inst._json.pop('VLANs')
+        self.assertRaisesRegex(
+            exceptions.MissingAttributeError, 'attribute VLAN',
+            self.port_inst._get_vlan_collection_path)
+
+    def test_vlan(self):
+        # checkou for the underpath variable value
+        self.assertIsNone(self.port_inst._vlans)
+        # | GIVEN |
+        self.conn.get.return_value.json.reset_mock()
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_port_vlan_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN |
+        actual_vlans = self.port_inst.vlans
+        # | THEN |
+        self.assertIsInstance(actual_vlans,
+                              vlan.VLANCollection)
+        self.conn.get.return_value.json.assert_called_once_with()
+
+        # reset mock
+        self.conn.get.return_value.json.reset_mock()
+        # | WHEN & THEN |
+        self.assertIs(actual_vlans, self.port_inst.vlans)
+        self.conn.get.return_value.json.assert_not_called()
+
+    def test_vlan_on_refresh(self):
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_port_vlan_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.port_inst.vlans,
+                              vlan.VLANCollection)
+
+        # On refreshing...
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_port.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        self.port_inst.refresh()
+
+        # | WHEN & THEN |
+        self.assertIsNone(self.port_inst._vlans)
+
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_port_vlan_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.port_inst.vlans, vlan.VLANCollection)
 
 
 class PortCollectionTestCase(testtools.TestCase):
