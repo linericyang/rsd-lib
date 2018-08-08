@@ -121,8 +121,7 @@ class EthernetSwitch(base.ResourceBase):
         if self._ports is None:
             self._ports = port.PortCollection(
                 self._conn, self._get_port_collection_path(),
-                redfish_version=self.redfish_version
-            )
+                redfish_version=self.redfish_version)
 
         return self._ports
 

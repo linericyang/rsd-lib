@@ -15,9 +15,11 @@
 
 import logging
 
+from sushy import exceptions
 from sushy.resources import base
 from sushy import utils
 
+from rsd_lib.resources.v2_1.ethernet_switch import static_mac
 from rsd_lib import utils as rsd_lib_utils
 
 LOG = logging.getLogger(__name__)
@@ -144,8 +146,7 @@ class Port(base.ResourceBase):
     vlans = base.Field('VLANs', adapter=rsd_lib_utils.get_resource_identity)
     """The port vlans"""
 
-    static_macs = base.Field('StaticMACs',
-                             adapter=rsd_lib_utils.get_resource_identity)
+    _static_macs = None  # ref to StaticMACCollection instance
     """The port static macs"""
 
     links = LinksField('Links')
@@ -160,6 +161,32 @@ class Port(base.ResourceBase):
             the object according to schema of the given version.
         """
         super(Port, self).__init__(connector, identity, redfish_version)
+
+    def _get_static_mac_collection_path(self):
+        """Helper function to find the StaticMACCollection path"""
+        static_mac_col = self.json.get('StaticMACs')
+        if not static_mac_col:
+            raise exceptions.MissingAttributeError(attribute='StaticMAC',
+                                                   resource=self._path)
+        return rsd_lib_utils.get_resource_identity(static_mac_col)
+
+    @property
+    def static_macs(self):
+        """Property to provide reference to `StaticMACollection` instance
+
+        It is calculated once when it is queried for the first time. On
+        refresh, this property is reset.
+        """
+        if self._static_macs is None:
+            self._static_macs = static_mac.StaticMACCollection(
+                self._conn, self._get_static_mac_collection_path(),
+                redfish_version=self.redfish_version)
+
+        return self._static_macs
+
+    def refresh(self):
+        super(Port, self).refresh()
+        self._static_macs = None
 
 
 class PortCollection(base.ResourceCollectionBase):

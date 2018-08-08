@@ -16,9 +16,11 @@
 import json
 
 import mock
+from sushy import exceptions
 import testtools
 
 from rsd_lib.resources.v2_1.ethernet_switch import port
+from rsd_lib.resources.v2_1.ethernet_switch import static_mac
 
 
 class PortTestCase(testtools.TestCase):
@@ -81,9 +83,7 @@ class PortTestCase(testtools.TestCase):
         self.assertEqual(
             '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1/VLANs',
             self.port_inst.vlans)
-        self.assertEqual(
-            '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1/StaticMACs',
-            self.port_inst.static_macs)
+        self.assertIsNone(self.port_inst._static_macs)
         self.assertEqual(
             '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1/VLANs/VLAN1',
             self.port_inst.links.primary_vlan)
@@ -97,6 +97,64 @@ class PortTestCase(testtools.TestCase):
         self.assertEqual(
             '/redfish/v1/EthernetSwitches/Switch1/ACLs/ACL1',
             self.port_inst.links.active_acls[0])
+
+    def test__get_static_mac_collection_path(self):
+        self.assertEqual(
+            '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1/StaticMACs',
+            self.port_inst._get_static_mac_collection_path())
+
+    def test__get_static_mac_collection_path_missing_attr(self):
+        self.port_inst._json.pop('StaticMACs')
+        self.assertRaisesRegex(
+            exceptions.MissingAttributeError, 'attribute StaticMAC',
+            self.port_inst._get_static_mac_collection_path)
+
+    def test_static_mac(self):
+        # checkou for the underpath variable value
+        self.assertIsNone(self.port_inst._static_macs)
+        # | GIVEN |
+        self.conn.get.return_value.json.reset_mock()
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_port_static_mac_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN |
+        actual_static_macs = self.port_inst.static_macs
+        # | THEN |
+        self.assertIsInstance(actual_static_macs,
+                              static_mac.StaticMACCollection)
+        self.conn.get.return_value.json.assert_called_once_with()
+
+        # reset mock
+        self.conn.get.return_value.json.reset_mock()
+        # | WHEN & THEN |
+        self.assertIs(actual_static_macs, self.port_inst.static_macs)
+        self.conn.get.return_value.json.assert_not_called()
+
+    def test_static_mac_on_refresh(self):
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_port_static_mac_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.port_inst.static_macs,
+                              static_mac.StaticMACCollection)
+
+        # On refreshing...
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_port.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        self.port_inst.refresh()
+
+        # | WHEN & THEN |
+        self.assertIsNone(self.port_inst._static_macs)
+
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_port_static_mac_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.port_inst.static_macs,
+                              static_mac.StaticMACCollection)
 
 
 class PortCollectionTestCase(testtools.TestCase):

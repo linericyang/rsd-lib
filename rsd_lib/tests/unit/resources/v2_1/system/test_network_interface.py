@@ -92,12 +92,11 @@ class NetworkInterfaceCollectionTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'system_network_interface_collection.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-            self.network_interface_col = network_interface.\
-                NetworkInterfaceCollection(
-                    self.conn,
-                    '/redfish/v1/Systems/System1/EthernetInterfaces',
-                    redfish_version='1.1.0'
-                )
+        self.network_interface_col = network_interface.\
+            NetworkInterfaceCollection(
+                self.conn,
+                '/redfish/v1/Systems/System1/EthernetInterfaces',
+                redfish_version='1.1.0')
 
     def test__parse_attributes(self):
         self.network_interface_col._parse_attributes()
@@ -113,8 +112,7 @@ class NetworkInterfaceCollectionTestCase(testtools.TestCase):
         mock_network_interface.assert_called_once_with(
             self.network_interface_col._conn,
             '/redfish/v1/Systems/System1/EthernetInterfaces/LAN1',
-            redfish_version=self.network_interface_col.redfish_version
-        )
+            redfish_version=self.network_interface_col.redfish_version)
 
     @mock.patch.object(network_interface, 'NetworkInterface', autospec=True)
     def test_get_members(self, mock_network_interface):
