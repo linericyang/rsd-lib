@@ -25,9 +25,10 @@ LOG = logging.getLogger(__name__)
 
 
 class ClassToPriorityMappingField(base.ListField):
-    priority = base.Field('Priority', adapter=int)
+    priority = base.Field('Priority', adapter=rsd_lib_utils.int_or_none)
 
-    traffic_class = base.Field('TrafficClass', adapter=int)
+    traffic_class = base.Field(
+        'TrafficClass', adapter=rsd_lib_utils.int_or_none)
 
 
 class PriorityFlowControlField(base.CompositeField):
@@ -37,23 +38,27 @@ class PriorityFlowControlField(base.CompositeField):
 
 
 class PriorityToClassMappingField(base.ListField):
-    priority = base.Field('Priority', adapter=int)
+    priority = base.Field('Priority', adapter=rsd_lib_utils.int_or_none)
 
-    traffic_class = base.Field('TrafficClass', adapter=int)
+    traffic_class = base.Field(
+        'TrafficClass', adapter=rsd_lib_utils.int_or_none)
 
 
 class TrafficClassficationField(base.ListField):
-    port = base.Field('Port', adapter=int)
+    port = base.Field('Port', adapter=rsd_lib_utils.int_or_none)
 
     protocol = base.Field('Protocol')
 
-    traffic_class = base.Field('TrafficClass', adapter=int)
+    traffic_class = base.Field(
+        'TrafficClass', adapter=rsd_lib_utils.int_or_none)
 
 
 class TransmissionSelectionField(base.ListField):
-    bandwidth_percent = base.Field('BandwidthPercent', adapter=int)
+    bandwidth_percent = base.Field(
+        'BandwidthPercent', adapter=rsd_lib_utils.int_or_none)
 
-    traffic_class = base.Field('TrafficClass', adapter=int)
+    traffic_class = base.Field(
+        'TrafficClass', adapter=rsd_lib_utils.int_or_none)
 
 
 class EthernetSwitch(v2_1_ethernet_switch.EthernetSwitch):

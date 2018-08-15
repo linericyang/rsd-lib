@@ -61,7 +61,8 @@ class IPv6AddressesField(base.ListField):
     address = base.Field('Address')
     """The port ipv6 address"""
 
-    prefix_length = base.Field('PrefixLength', adapter=int)
+    prefix_length = base.Field(
+        'PrefixLength', adapter=rsd_lib_utils.int_or_none)
     """The port ipv6 address prefix length"""
 
     address_origin = base.Field('AddressOrigin')
@@ -108,7 +109,8 @@ class Port(base.ResourceBase):
     administrative_state = base.Field('AdministrativeState')
     """The port administrative state"""
 
-    link_speed_mbps = base.Field('LinkSpeedMbps', adapter=int)
+    link_speed_mbps = base.Field(
+        'LinkSpeedMbps', adapter=rsd_lib_utils.int_or_none)
     """The port link speed(mbps)"""
 
     neighbor_info = NeighborInfoField('NeighborInfo')
@@ -117,7 +119,8 @@ class Port(base.ResourceBase):
     neighbor_mac = base.Field('NeighborMAC')
     """The port neighbor mac"""
 
-    frame_size = base.Field('FrameSize', adapter=int)
+    frame_size = base.Field(
+        'FrameSize', adapter=rsd_lib_utils.int_or_none)
     """The port frame size"""
 
     autosense = base.Field('Autosense', adapter=bool)
