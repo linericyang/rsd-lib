@@ -23,7 +23,7 @@ from rsd_lib import utils
 
 class Memory(memory.Memory):
 
-    max_tdp_milliwatts = base.Field('MaxTDPMilliWatts', adapter=list)
+    max_tdp_milliwatts = base.Field('MaxTDPMilliWatts')
 
     _metrics = None  # ref to System instance
 

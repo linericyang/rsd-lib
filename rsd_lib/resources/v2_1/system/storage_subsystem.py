@@ -42,9 +42,9 @@ class StorageControllersField(base.ListField):
     speed_gbps = base.Field('SpeedGbps', adapter=rsd_lib_utils.int_or_none)
     firmware_version = base.Field('FirmwareVersion')
     supported_controller_protocols = base.Field(
-        'SupportedControllerProtocols', adapter=list)
+        'SupportedControllerProtocols')
     supported_device_protocols = base.Field(
-        'SupportedDeviceProtocols', adapter=list)
+        'SupportedDeviceProtocols')
     identifiers = IdentifiersField('Identifiers')
 
 

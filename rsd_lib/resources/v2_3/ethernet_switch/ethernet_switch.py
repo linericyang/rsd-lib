@@ -33,7 +33,7 @@ class ClassToPriorityMappingField(base.ListField):
 class PriorityFlowControlField(base.CompositeField):
     enabled = base.Field('Enabled', adapter=bool)
 
-    lossless_priorities = base.Field('LosslessPriorities', adapter=list)
+    lossless_priorities = base.Field('LosslessPriorities')
 
 
 class PriorityToClassMappingField(base.ListField):

@@ -52,5 +52,5 @@ class Metrics(base.ResourceBase):
                                    adapter=rsd_lib_utils.int_or_none)
     """The io bandwidth GBps"""
 
-    health = base.Field('Health', adapter=list)
+    health = base.Field('Health')
     """The detail health information"""

@@ -74,8 +74,7 @@ class StatusField(base.CompositeField):
 
 class BootField(base.CompositeField):
     allowed_values = base.Field(
-        'BootSourceOverrideTarget@Redfish.AllowableValues',
-        adapter=list)
+        'BootSourceOverrideTarget@Redfish.AllowableValues')
 
     enabled = base.MappedField('BootSourceOverrideEnabled',
                                node_maps.BOOT_SOURCE_ENABLED_MAP)

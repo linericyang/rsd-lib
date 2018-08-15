@@ -88,7 +88,7 @@ class Volume(base.ResourceBase):
     manufacturer = base.Field('Manufacturer')
     """The volume manufacturer"""
 
-    access_capabilities = base.Field('AccessCapabilities', adapter=list)
+    access_capabilities = base.Field('AccessCapabilities')
     """The access capabilities of volume"""
 
     capacity_bytes = base.Field('CapacityBytes',

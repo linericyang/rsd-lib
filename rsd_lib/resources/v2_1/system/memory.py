@@ -48,7 +48,7 @@ class Memory(base.ResourceBase):
     base_module_type = base.Field('BaseModuleType')
     """The type of base module"""
 
-    memory_media = base.Field('MemoryMedia', adapter=list)
+    memory_media = base.Field('MemoryMedia')
     """The memory media"""
 
     capacity_mib = base.Field('CapacityMiB', adapter=rsd_lib_utils.int_or_none)
@@ -71,7 +71,7 @@ class Memory(base.ResourceBase):
     part_number = base.Field('PartNumber')
     """The part number of this memory"""
 
-    allowed_speeds_mhz = base.Field('AllowedSpeedsMHz', adapter=list)
+    allowed_speeds_mhz = base.Field('AllowedSpeedsMHz')
     """The allowed speeds of this memory in MHz"""
 
     firmware_revision = base.Field('FirmwareRevision')
@@ -80,7 +80,7 @@ class Memory(base.ResourceBase):
     frirmware_api_version = base.Field('FirmwareApiVersion')
     """The API revision of this memory firmware"""
 
-    function_classes = base.Field('FunctionClasses', adapter=list)
+    function_classes = base.Field('FunctionClasses')
     """The function_classes  of the memory"""
 
     vendor_id = base.Field('VendorID')
@@ -103,7 +103,7 @@ class Memory(base.ResourceBase):
                                      adapter=rsd_lib_utils.int_or_none)
     """The operating speed of this memory in MHz"""
 
-    operating_memory_modes = base.Field('OperatingMemoryModes', adapter=list)
+    operating_memory_modes = base.Field('OperatingMemoryModes')
     """The operating memory modes"""
 
     memory_location = MemoryLocationField('MemoryLocation')

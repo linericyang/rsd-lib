@@ -44,5 +44,5 @@ class ProcessorMetrics(base.ResourceBase):
                                      adapter=rsd_lib_utils.int_or_none)
     """The processor consumed power watt"""
 
-    health = base.Field('Health', adapter=list)
+    health = base.Field('Health')
     """The detail health information"""

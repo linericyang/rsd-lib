@@ -34,5 +34,5 @@ class MemoryMetrics(base.ResourceBase):
         adapter=rsd_lib_utils.int_or_none)
     """The memory temperature celsius"""
 
-    health = base.Field(['Oem', 'Intel_RackScale', 'Health'], adapter=list)
+    health = base.Field(['Oem', 'Intel_RackScale', 'Health'])
     """The detail health information"""

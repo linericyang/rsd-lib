@@ -48,7 +48,7 @@ class MetricDefinition(base.ResourceBase):
     max_reading_range = base.Field('MaxReadingRange')
     """The max reading range of this sensor"""
 
-    discrete_values = base.Field('DiscreteValues', adapter=list)
+    discrete_values = base.Field('DiscreteValues')
     """The allowed discrete values"""
 
     precision = base.Field('Precision')
@@ -78,10 +78,10 @@ class MetricDefinition(base.ResourceBase):
     calculation_algorithm = base.Field('CalculationAlgorithm')
     """The calculation algorithm of the sensor"""
 
-    calculation_parameters = base.Field('CalculationParameters', adapter=list)
+    calculation_parameters = base.Field('CalculationParameters')
     """The calculation parameters of the sensor"""
 
-    wildcards = base.Field('Wildcards', adapter=list)
+    wildcards = base.Field('Wildcards')
     """The wildcards of the sensor"""
 
 

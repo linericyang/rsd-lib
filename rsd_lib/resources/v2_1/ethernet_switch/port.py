@@ -77,7 +77,7 @@ class LinksField(base.CompositeField):
     switch = base.Field('Switch', adapter=rsd_lib_utils.get_resource_identity)
     member_of_port = base.Field('MemberOfPort',
                                 adapter=rsd_lib_utils.get_resource_identity)
-    port_members = base.Field('PortMembers', adapter=list)
+    port_members = base.Field('PortMembers')
     active_acls = base.Field('ActiveACLs',
                              adapter=utils.get_members_identities)
 

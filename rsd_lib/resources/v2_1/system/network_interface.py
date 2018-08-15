@@ -102,7 +102,7 @@ class NetworkInterface(base.ResourceBase):
     configured on this interface
     """
 
-    name_servers = base.Field('NameServers', adapter=list)
+    name_servers = base.Field('NameServers')
     """The network interface nameserver"""
 
     ipv4_addresses = IPv4AddressesField('IPv4Addresses')
