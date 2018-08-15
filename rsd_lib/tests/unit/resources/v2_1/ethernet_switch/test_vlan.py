@@ -14,11 +14,12 @@
 #    under the License.
 
 import json
-
+import jsonschema
 import mock
 import testtools
 
 from rsd_lib.resources.v2_1.ethernet_switch import vlan
+from rsd_lib.tests.unit.fakes import request_fakes
 
 
 class VLANTestCase(testtools.TestCase):
@@ -52,11 +53,18 @@ class VLANCollectionTestCase(testtools.TestCase):
         self.conn = mock.Mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'ethernet_switch_port_vlan_collection.json', 'r') as f:
-            self.conn.get.return_value.json.return_value = json.loads(f.read())
-            self.vlan_col = vlan.VLANCollection(
-                self.conn,
-                '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1/VLANs',
-                redfish_version='1.1.0')
+            self.conn.get.return_value = \
+                request_fakes.fake_request_get(json.loads(f.read()))
+            self.conn.post.return_value = \
+                request_fakes.fake_request_post(
+                    None,
+                    headers={"Location": "https://localhost:8443/redfish/v1/"
+                             "EthernetSwitches/Switch1/"
+                             "Ports/Port1/VLANs/VLAN1"})
+        self.vlan_col = vlan.VLANCollection(
+            self.conn,
+            '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1/VLANs',
+            redfish_version='1.1.0')
 
     def test__parse_attributes(self):
         self.vlan_col._parse_attributes()
@@ -86,3 +94,53 @@ class VLANCollectionTestCase(testtools.TestCase):
         mock_vlan.assert_has_calls(calls)
         self.assertIsInstance(members, list)
         self.assertEqual(1, len(members))
+
+    def test_add_vlan_reqs(self):
+        reqs = {
+            'VLANId': 101,
+            'VLANEnable': True,
+            'Oem': {
+                'Intel_RackScale': {
+                    'Tagged': False
+                }
+            }
+        }
+        result = self.vlan_col.add_vlan(reqs)
+        self.vlan_col._conn.post.assert_called_once_with(
+            '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1/VLANs',
+            data=reqs)
+        self.assertEqual(result,
+                         '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1/'
+                         'VLANs/VLAN1')
+
+    def test_add_vlan_invalid_reqs(self):
+        reqs = {
+            'VLANId': 101,
+            'VLANEnable': True,
+            'Oem': {
+                'Intel_RackScale': {
+                    'Tagged': False
+                }
+            }
+        }
+
+        # Missing filed
+        vlan_network_interface_req = reqs.copy()
+        vlan_network_interface_req.pop('VLANId')
+        self.assertRaises(jsonschema.exceptions.ValidationError,
+                          self.vlan_col.add_vlan,
+                          vlan_network_interface_req)
+
+        # Wrong format
+        vlan_network_interface_req = reqs.copy()
+        vlan_network_interface_req.update({'VLANId': 'WrongFormat'})
+        self.assertRaises(jsonschema.exceptions.ValidationError,
+                          self.vlan_col.add_vlan,
+                          vlan_network_interface_req)
+
+        # Wrong additional fields
+        vlan_network_interface_req = reqs.copy()
+        vlan_network_interface_req['Additional'] = 'AdditionalField'
+        self.assertRaises(jsonschema.exceptions.ValidationError,
+                          self.vlan_col.add_vlan,
+                          vlan_network_interface_req)

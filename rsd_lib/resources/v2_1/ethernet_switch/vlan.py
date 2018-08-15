@@ -13,9 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from jsonschema import validate
+import logging
 from sushy.resources import base
 
+from rsd_lib.resources.v2_1.ethernet_switch import schemas as \
+    ethernet_switch_schemas
 from rsd_lib import utils as rsd_lib_utils
+
+LOG = logging.getLogger(__name__)
 
 
 class VLAN(base.ResourceBase):
@@ -65,3 +71,18 @@ class VLANCollection(base.ResourceCollectionBase):
             the object according to schema of the given version.
         """
         super(VLANCollection, self).__init__(connector, path, redfish_version)
+
+    def add_vlan(self, vlan_network_interface_req):
+        """Add a vlan to port
+
+        :param vlan_network_interface_req: JSON for vlan network interface
+        :returns: The location of the vlan network interface
+        """
+        target_uri = self._path
+        validate(vlan_network_interface_req,
+                 ethernet_switch_schemas.vlan_network_interface_req_schema)
+        resp = self._conn.post(target_uri, data=vlan_network_interface_req)
+        LOG.info("VLAN add at %s", resp.headers['Location'])
+        vlan_network_interface_url = resp.headers['Location']
+        return vlan_network_interface_url[vlan_network_interface_url.
+                                          find(self._path):]
