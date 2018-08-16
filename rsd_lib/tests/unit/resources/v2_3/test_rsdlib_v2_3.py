@@ -21,7 +21,6 @@ from rsd_lib.resources.v2_1.chassis import chassis as v2_1_chassis
 from rsd_lib.resources.v2_1.ethernet_switch import ethernet_switch \
     as v2_1_ethernet_switch
 from rsd_lib.resources.v2_1.manager import manager as v2_1_manager
-from rsd_lib.resources.v2_1.node import node as v2_1_node
 from rsd_lib.resources.v2_2.system import system as v2_2_system
 from rsd_lib.resources import v2_3
 from rsd_lib.resources.v2_3.fabric import fabric as v2_3_fabric
@@ -65,7 +64,7 @@ class RSDLibV2_3TestCase(testtools.TestCase):
             self.rsd._conn, 'fake-system-id',
             redfish_version=self.rsd.redfish_version)
 
-    @mock.patch.object(v2_1_node, 'NodeCollection', autospec=True)
+    @mock.patch.object(v2_3_node, 'NodeCollection', autospec=True)
     def test_get_node_collection(self, mock_node_collection):
         self.rsd.get_node_collection()
         mock_node_collection.assert_called_once_with(

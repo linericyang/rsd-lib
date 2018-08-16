@@ -145,3 +145,21 @@ class Node(v2_1_node.Node):
             self._actions.attach_endpoint.action_info = None
         if self._actions.detach_endpoint:
             self._actions.detach_endpoint.action_info = None
+
+
+class NodeCollection(v2_1_node.NodeCollection):
+
+    @property
+    def _resource_type(self):
+        return Node
+
+    def __init__(self, connector, path, redfish_version=None):
+        """A class representing a NodeCollection
+
+        :param connector: A Connector instance
+        :param path: The canonical path to the Node collection
+            resource
+        :param redfish_version: The version of RedFish. Used to construct
+            the object according to schema of the given version.
+        """
+        super(NodeCollection, self).__init__(connector, path, redfish_version)

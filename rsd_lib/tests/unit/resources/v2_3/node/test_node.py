@@ -14,12 +14,14 @@
 #    under the License.
 
 import json
+import jsonschema
 import mock
 import testtools
 
 from sushy import exceptions
 
 from rsd_lib.resources.v2_3.node import node
+from rsd_lib.tests.unit.fakes import request_fakes
 
 
 class NodeTestCase(testtools.TestCase):
@@ -200,3 +202,81 @@ class NodeTestCase(testtools.TestCase):
 
         self.assertIsNone(self.node_inst._actions.attach_endpoint.action_info)
         self.assertIsNone(self.node_inst._actions.detach_endpoint.action_info)
+
+
+class NodeCollectionTestCase(testtools.TestCase):
+
+    def setUp(self):
+        super(NodeCollectionTestCase, self).setUp()
+        self.conn = mock.Mock()
+        with open('rsd_lib/tests/unit/json_samples/v2_3/node_collection.json',
+                  'r') as f:
+            self.conn.get.return_value = request_fakes.fake_request_get(
+                json.loads(f.read()))
+            self.conn.post.return_value = request_fakes.fake_request_post(
+                None, headers={"Location": "https://localhost:8443/"
+                                           "redfish/v1/Nodes/1"})
+        self.node_col = node.NodeCollection(
+            self.conn, '/redfish/v1/Nodes', redfish_version='1.0.2')
+
+    def test__parse_attributes(self):
+        self.node_col._parse_attributes()
+        self.assertEqual('1.0.2', self.node_col.redfish_version)
+        self.assertEqual('Composed Node Collection', self.node_col.name)
+        self.assertEqual(('/redfish/v1/Nodes/1',),
+                         self.node_col.members_identities)
+
+    @mock.patch.object(node, 'Node', autospec=True)
+    def test_get_member(self, mock_node):
+        self.node_col.get_member('/redfish/v1/Nodes/1')
+        mock_node.assert_called_once_with(
+            self.node_col._conn, '/redfish/v1/Nodes/1',
+            redfish_version=self.node_col.redfish_version)
+
+    @mock.patch.object(node, 'Node', autospec=True)
+    def test_get_members(self, mock_node):
+        members = self.node_col.get_members()
+        mock_node.assert_called_once_with(
+            self.node_col._conn, '/redfish/v1/Nodes/1',
+            redfish_version=self.node_col.redfish_version)
+        self.assertIsInstance(members, list)
+        self.assertEqual(1, len(members))
+
+    def test__get_compose_action_element(self):
+        value = self.node_col._get_compose_action_element()
+        self.assertEqual('/redfish/v1/Nodes/Actions/Allocate',
+                         value.target_uri)
+
+    def test_compose_node_no_reqs(self):
+        result = self.node_col.compose_node()
+        self.node_col._conn.post.assert_called_once_with(
+            '/redfish/v1/Nodes/Actions/Allocate', data={})
+        self.assertEqual(result, '/redfish/v1/Nodes/1')
+
+    def test_compose_node_reqs(self):
+        reqs = {
+            'Name': 'test',
+            'Description': 'this is a test node',
+            'Processors': [{
+                'TotalCores': 4
+            }],
+            'Memory': [{
+                'CapacityMiB': 8000
+            }],
+            'TotalSystemCoreCount': 8,
+            'TotalSystemMemoryMiB': 16000
+        }
+        result = self.node_col.compose_node(
+            name='test', description='this is a test node',
+            processor_req=[{'TotalCores': 4}],
+            memory_req=[{'CapacityMiB': 8000}],
+            total_system_core_req=8,
+            total_system_memory_req=16000)
+        self.node_col._conn.post.assert_called_once_with(
+            '/redfish/v1/Nodes/Actions/Allocate', data=reqs)
+        self.assertEqual(result, '/redfish/v1/Nodes/1')
+
+    def test_compose_node_invalid_reqs(self):
+        self.assertRaises(jsonschema.exceptions.ValidationError,
+                          self.node_col.compose_node,
+                          processor_req='invalid')

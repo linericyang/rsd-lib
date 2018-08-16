@@ -35,6 +35,16 @@ class RSDLibV2_3(v2_2.RSDLibV2_2):
                                         '@odata.id'], required=True)
     """StorageServiceCollection path"""
 
+    def get_node_collection(self):
+        """Get the NodeCollection object
+
+        :raises: MissingAttributeError, if the collection attribute is
+            not found
+        :returns: a NodeCollection object
+        """
+        return node.NodeCollection(self._conn, self._nodes_path,
+                                   redfish_version=self.redfish_version)
+
     def get_node(self, identity):
         """Given the identity return a Node object
 
