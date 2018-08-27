@@ -164,7 +164,7 @@ class EndpointTestCase(testtools.TestCase):
             })
 
     def test_update_authentication_with_invalid_parameter(self):
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError,
             'At least "username" or "password" parameter has to be specified'):
             self.endpoint_inst.update_authentication()

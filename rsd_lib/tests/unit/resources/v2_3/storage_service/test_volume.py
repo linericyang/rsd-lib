@@ -112,17 +112,17 @@ class StorageServiceTestCase(testtools.TestCase):
                                               "Erased": True}}})
 
     def test_update_volume_with_invalid_parameter(self):
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             ValueError,
             'At least "bootable" or "erased" parameter has to be specified'):
             self.volume_inst.update()
 
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             exceptions.InvalidParameterValueError,
             'The parameter "bootable" value "fake-value" is invalid'):
             self.volume_inst.update(bootable='fake-value')
 
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             exceptions.InvalidParameterValueError,
             'The parameter "erased" value "fake-value" is invalid'):
             self.volume_inst.update(bootable=True, erased='fake-value')
@@ -148,7 +148,7 @@ class StorageServiceTestCase(testtools.TestCase):
             data={"InitializeType": "Slow"})
 
     def test_initialize_with_invalid_parameter(self):
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             exceptions.InvalidParameterValueError,
             'The parameter "init_type" value "fake-value" is invalid'
                 '.*[\'Fast\', \'Slow\']'):
