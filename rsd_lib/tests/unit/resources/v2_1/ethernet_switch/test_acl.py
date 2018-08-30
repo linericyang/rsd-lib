@@ -18,7 +18,10 @@ import json
 import mock
 import testtools
 
+from sushy import exceptions
+
 from rsd_lib.resources.v2_1.ethernet_switch import acl
+from rsd_lib.resources.v2_1.ethernet_switch import acl_rule
 
 
 class ACLTestCase(testtools.TestCase):
@@ -36,7 +39,7 @@ class ACLTestCase(testtools.TestCase):
             redfish_version='1.0.2'
         )
 
-    def test__parst_attributes(self):
+    def test__parse_attributes(self):
         self.acl_inst._parse_attributes()
         self.assertEqual('1.0.2', self.acl_inst.redfish_version)
         self.assertEqual('ACL1', self.acl_inst.identity)
@@ -44,8 +47,67 @@ class ACLTestCase(testtools.TestCase):
                          self.acl_inst.name)
         self.assertEqual('Switch ACL', self.acl_inst.description)
         self.assertEqual({}, self.acl_inst.oem)
-        self.assertEqual('/redfish/v1/EthernetSwitches/Switch1/ACLs/ACL1/'
-                         'Rules', self.acl_inst.rules)
+        self.assertIsNone(self.acl_inst._rules)
+
+    def test__get_acl_rule_collection_path(self):
+        self.assertEqual(
+            '/redfish/v1/EthernetSwitches/Switch1/ACLs/ACL1/Rules',
+            self.acl_inst._get_acl_rule_collection_path())
+
+    def test__get_acl_rule_collection_path_missing_attr(self):
+        self.acl_inst._json.pop('Rules')
+        self.assertRaisesRegex(
+            exceptions.MissingAttributeError, 'attribute ACLRule',
+            self.acl_inst._get_acl_rule_collection_path)
+
+    def test_acl_rule(self):
+        # check for the underpath variable value
+        self.assertIsNone(self.acl_inst._rules)
+        # | GIVEN |
+        self.conn.get.return_value.json.reset_mock()
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_acl.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN |
+        actual_acl_rules = self.acl_inst.rules
+        # | THEN |
+        self.assertIsInstance(actual_acl_rules,
+                              acl_rule.ACLRuleCollection)
+        self.conn.get.return_value.json.assert_called_once_with()
+
+        # reset mock
+        self.conn.get.return_value.json.reset_mock()
+        # | WHEN & THEN |
+        # tests for same object on invoking subsequently
+        self.assertIs(actual_acl_rules,
+                      self.acl_inst.rules)
+        self.conn.get.return_value.json.assert_not_called()
+
+    def test_acl_rule_on_refresh(self):
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'acl_rule_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.acl_inst.rules,
+                              acl_rule.ACLRuleCollection)
+
+        # On refreshing the acl_rule instance...
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'ethernet_switch_acl.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        self.acl_inst.refresh()
+
+        # | WHEN & THEN |
+        self.assertIsNone(self.acl_inst._rules)
+
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'acl_rule_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.acl_inst.rules,
+                              acl_rule.ACLRuleCollection)
 
 
 class ACLCollectionTestCase(testtools.TestCase):
