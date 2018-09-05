@@ -19,6 +19,7 @@ import testtools
 
 from sushy import exceptions
 
+from rsd_lib.resources.v2_3.fabric import endpoint
 from rsd_lib.resources.v2_3.storage_service import drive
 from rsd_lib.resources.v2_3.storage_service import storage_pool
 from rsd_lib.resources.v2_3.storage_service import storage_service
@@ -229,6 +230,66 @@ class StorageServiceTestCase(testtools.TestCase):
         # | WHEN & THEN |
         self.assertIsInstance(self.storage_service_inst.drives,
                               drive.DriveCollection)
+
+    def test__get_endpoint_collection_path(self):
+        expected = '/redfish/v1/Fabrics/1/Endpoints'
+        result = self.storage_service_inst._get_endpoint_collection_path()
+        self.assertEqual(expected, result)
+
+    def test__get_endpoint_collection_path_missing_attr(self):
+        self.storage_service_inst._json.pop('Endpoints')
+        self.assertRaisesRegex(
+            exceptions.MissingAttributeError, 'attribute Endpoints',
+            self.storage_service_inst._get_endpoint_collection_path)
+
+    def test_endpoints(self):
+        # check for the underneath variable value
+        self.assertIsNone(self.storage_service_inst._endpoints)
+        # | GIVEN |
+        self.conn.get.return_value.json.reset_mock()
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'endpoint_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN |
+        actual_endpoints = self.storage_service_inst.endpoints
+        # | THEN |
+        self.assertIsInstance(actual_endpoints,
+                              endpoint.EndpointCollection)
+        self.conn.get.return_value.json.assert_called_once_with()
+
+        # reset mock
+        self.conn.get.return_value.json.reset_mock()
+        # | WHEN & THEN |
+        # tests for same object on invoking subsequently
+        self.assertIs(actual_endpoints,
+                      self.storage_service_inst.endpoints)
+        self.conn.get.return_value.json.assert_not_called()
+
+    def test_endpoints_on_refresh(self):
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'endpoint_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.storage_service_inst.endpoints,
+                              endpoint.EndpointCollection)
+
+        # On refreshing the fabric instance...
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'fabric.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        self.storage_service_inst.refresh()
+
+        # | WHEN & THEN |
+        self.assertIsNone(self.storage_service_inst._endpoints)
+
+        # | GIVEN |
+        with open('rsd_lib/tests/unit/json_samples/v2_1/'
+                  'endpoint_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+        # | WHEN & THEN |
+        self.assertIsInstance(self.storage_service_inst.endpoints,
+                              endpoint.EndpointCollection)
 
 
 class StorageServiceCollectionTestCase(testtools.TestCase):
