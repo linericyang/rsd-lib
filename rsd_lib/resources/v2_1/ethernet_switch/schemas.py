@@ -39,3 +39,123 @@ vlan_network_interface_req_schema = {
     ],
     'additionalProperties': False
 }
+
+acl_rule_req_schema = {
+    'type': 'object',
+    'oneOf': [
+        {
+            'properties': {
+                'Action': {'enum': ['Forward']}
+            },
+            'required': ['ForwardMirrorInterface']
+        },
+        {
+            'properties': {
+                'Action': {'enum': ['Mirror']}
+            },
+            'required': ['ForwardMirrorInterface',
+                         'MirrorPortRegion', 'MirrorType']
+        },
+        {
+            'properties': {
+                'Action': {'enum': ['Permit', 'Deny']}
+            }
+        }
+    ],
+    'properties': {
+        'RuleId': {'type': 'number'},
+        'Action': {
+            'type': 'string',
+            'enum': ['Permit', 'Deny', 'Forward', 'Mirror']
+        },
+        'ForwardMirrorInterface': {
+            'type': 'object',
+            'properties': {
+                '@odata.id': {
+                    'type': 'string'
+                }
+            },
+            'required': ['@odata.id']
+        },
+        'MirrorPortRegion': {
+            'type': 'array',
+            'items': {
+                'type': 'object',
+                'properties': {
+                    '@odata.id': {
+                        'type': 'string'
+                    }
+                },
+                'required': ['@odata.id']
+            }
+        },
+        'MirrorType': {
+            'type': 'string',
+            'enum': ['Egress', 'Ingress', 'Bidirectional', 'Redirect']
+        },
+        'Condition': {
+            'type': 'object',
+            'properties': {
+                'IPSource': {
+                    'type': 'object',
+                    'properties': {
+                        'IPv4Addresses': {'type': 'string'},
+                        'Mask': {'type': ['string', 'null']}
+                    },
+                    'required': ['IPv4Address']
+                },
+                'IPDestination': {
+                    'type': 'object',
+                    'properties': {
+                        'IPv4Address': {'type': 'string'},
+                        'Mask': {'type': ['string', 'null']}
+                    },
+                    'required': ['IPv4Address']
+                },
+                'MACSource': {
+                    'type': 'object',
+                    'properties': {
+                        'MACAddress': {'type': 'string'},
+                        'Mask': {'type': ['string', 'null']}
+                    },
+                    'required': ['MACAddress']
+                },
+                'MACDestination': {
+                    'type': 'object',
+                    'properties': {
+                        'MACAddress': {'type': 'string'},
+                        'Mask': {'type': ['string', 'null']}
+                    },
+                    'required': ['MACAddress']
+                },
+                'VLANId': {
+                    'type': 'object',
+                    'properties': {
+                        'Id': {'type': 'number'},
+                        'Mask': {'type': ['number', 'null']}
+                    },
+                    'required': ['Id']
+                },
+                'L4SourcePort': {
+                    'type': 'object',
+                    'properties': {
+                        'Port': {'type': 'number'},
+                        'Mask': {'type': ['number', 'null']}
+                    },
+                    'required': ['Port']
+                },
+                'L4DestinationPort': {
+                    'type': 'object',
+                    'properties': {
+                        'Port': {'type': 'number'},
+                        'Mask': {'type': ['number', 'null']}
+                    },
+                    'required': ['Port']
+                },
+                'L4Protocol': {'type': ['number', 'null']}
+            }
+        },
+    },
+    'required': ['Action', 'Condition'],
+    'additionalProperties': False
+}

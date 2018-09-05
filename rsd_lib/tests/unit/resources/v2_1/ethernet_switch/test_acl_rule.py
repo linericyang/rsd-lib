@@ -14,11 +14,13 @@
 #    under the License.
 
 import json
+import jsonschema
 
 import mock
 import testtools
 
 from rsd_lib.resources.v2_1.ethernet_switch import acl_rule
+from rsd_lib.tests.unit.fakes import request_fakes
 
 
 class ACLRuleTestCase(testtools.TestCase):
@@ -79,6 +81,12 @@ class ACLRuleCollectionTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'acl_rule_collection.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
+            self.conn.post.return_value = \
+                request_fakes.fake_request_post(
+                    None,
+                    headers={"Location": "https://localhost:8443/redfish/v1/"
+                             "EthernetSwitches/Switch1/ACLs/ACL1/"
+                             "Rules/Rule1"})
 
         self.acl_rule_col = acl_rule.ACLRuleCollection(
             self.conn,
@@ -99,16 +107,151 @@ class ACLRuleCollectionTestCase(testtools.TestCase):
     def test_get_member(self, mock_acl_rule):
         self.acl_rule_col.get_member(
             '/redfish/v1/EthernetSwitches/Switch1/ACLs/ACL1/Rules/Rule1')
-
         mock_acl_rule.assert_called_once_with(
             self.acl_rule_col._conn,
             '/redfish/v1/EthernetSwitches/Switch1/ACLs/ACL1/Rules/Rule1',
-            redfish_version=self.acl_rule_col.redfish_version
-        )
+            redfish_version=self.acl_rule_col.redfish_version)
 
     @mock.patch.object(acl_rule, 'ACLRule', autospec=True)
     def test_get_members(self, mock_acl_rule):
         members = self.acl_rule_col.get_members()
+        calls = [
+            mock.call(self.acl_rule_col._conn,
+                      '/redfish/v1/EthernetSwitches/Switch1/ACLs/ACL1/'
+                      'Rules/Rule1',
+                      redfish_version=self.acl_rule_col.redfish_version)
+        ]
+        mock_acl_rule.assert_has_calls(calls)
         self.assertEqual(mock_acl_rule.call_count, 1)
         self.assertIsInstance(members, list)
         self.assertEqual(1, len(members))
+
+    def test_add_acl_rule_reqs(self):
+        reqs = {
+            'RuleId': 1,
+            'Action': 'Mirror',
+            'ForwardMirrorInterface': {
+                '@odata.id': '/redfish/v1/EthernetSwitches/Switch1/Ports/Port9'
+            },
+            'MirrorPortRegion': [
+                {
+                    '@odata.id': '/redfish/v1/EthernetSwitches/Switch1/Ports/'
+                                 'Port1'
+                }
+            ],
+            'MirrorType': 'Bidirectional',
+            'Condition': {
+                'IPSource': {
+                    'IPv4Address': '192.168.8.0',
+                    'Mask': '0.0.0.255'
+                },
+                'IPDestination': {
+                    'IPv4Address': '192.168.1.0'
+                },
+                'MACSource': {
+                    'MACAddress': '00:11:22:33:44:55',
+                },
+                'MACDestination': {
+                    'MACAddress': '55:44:33:22:11:00'
+                },
+                'VLANid': {
+                    'Id': 1088,
+                    'Mask': 4095
+                },
+                'L4SourcePort': {
+                    'Port': 22,
+                    'Mask': 255
+                },
+                'L4DestinationPort': {
+                    'Port': 22,
+                    'Mask': 255
+                },
+                'L4Protocol': 1
+            }
+        }
+        result = self.acl_rule_col.add_acl_rule(reqs)
+        self.acl_rule_col._conn.post.assert_called_once_with(
+            '/redfish/v1/EthernetSwitches/Switch1/ACLs/ACL1/Rules',
+            data=reqs)
+        self.assertEqual(result,
+                         '/redfish/v1/EthernetSwitches/Switch1/ACLs/ACL1/'
+                         'Rules/Rule1')
+
+    def test_add_acl_rule_invalid_reqs(self):
+        reqs = {
+            'RuleId': 1,
+            'Action': 'Mirror',
+            'ForwardMirrorInterface': {
+                '@odata.id': '/redfish/v1/EthernetSwitches/Switch1/Ports/Port9'
+            },
+            'MirrorPortRegion': [
+                {
+                    '@odata.id': '/redfish/v1/EthernetSwitches/Switch1/Ports/'
+                                 'Port1'
+                }
+            ],
+            'MirrorType': 'Bidirectional',
+            'Condition': {
+                'IPSource': {
+                    'IPv4Address': '192.168.8.0',
+                    'Mask': '0.0.0.255'
+                },
+                'IPDestination': {
+                    'IPv4Address': '192.168.1.0'
+                },
+                'MACSource': {
+                    'MACAddress': '00:11:22:33:44:55',
+                },
+                'MACDestination': {
+                    'MACAddress': '55:44:33:22:11:00'
+                },
+                'VLANid': {
+                    'Id': 1088,
+                    'Mask': 4095
+                },
+                'L4SourcePort': {
+                    'Port': 22,
+                    'Mask': 255
+                },
+                'L4DestinationPort': {
+                    'Port': 22,
+                    'Mask': 255
+                },
+                'L4Protocol': 1
+            }
+        }
+
+        # Missing field
+        acl_rule_req = reqs.copy()
+        acl_rule_req.pop('Action')
+        self.assertRaises(jsonschema.exceptions.ValidationError,
+                          self.acl_rule_col.add_acl_rule,
+                          acl_rule_req)
+
+        # Wrong format
+        acl_rule_req = reqs.copy()
+        acl_rule_req.update({'RuleId': 'WrongFormat'})
+        self.assertRaises(jsonschema.exceptions.ValidationError,
+                          self.acl_rule_col.add_acl_rule,
+                          acl_rule_req)
+
+        # Wrong additional fields
+        acl_rule_req = reqs.copy()
+        acl_rule_req['Additional'] = 'AdditionalField'
+        self.assertRaises(jsonschema.exceptions.ValidationError,
+                          self.acl_rule_col.add_acl_rule,
+                          acl_rule_req)
+
+        # Wrong enum
+        acl_rule_req = reqs.copy()
+        acl_rule_req['MirrorType'] = 'WrongEnum'
+        self.assertRaises(jsonschema.exceptions.ValidationError,
+                          self.acl_rule_col.add_acl_rule,
+                          acl_rule_req)
+
+        # Wrong dependency
+        acl_rule_req = reqs.copy()
+        acl_rule_req.pop('ForwardMirrorInterface')
+        self.assertRaises(jsonschema.exceptions.ValidationError,
+                          self.acl_rule_col.add_acl_rule,
+                          acl_rule_req)
