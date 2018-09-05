@@ -18,6 +18,7 @@ import logging
 from sushy import exceptions
 from sushy.resources import base
 
+from rsd_lib.resources.v2_3.fabric import endpoint
 from rsd_lib.resources.v2_3.storage_service import drive
 from rsd_lib.resources.v2_3.storage_service import storage_pool
 from rsd_lib.resources.v2_3.storage_service import volume
@@ -51,6 +52,8 @@ class StorageService(base.ResourceBase):
     _storage_pools = None  # ref to StoragePool collection
 
     _drives = None  # ref to Drive collection
+
+    _endpoints = None  # ref to Endpoint collection
 
     def __init__(self, connector, identity, redfish_version=None):
         """A class representing a StorageService
@@ -129,11 +132,34 @@ class StorageService(base.ResourceBase):
 
         return self._drives
 
+    def _get_endpoint_collection_path(self):
+        """Helper function to find the EndpointCollection path"""
+        endpoint_col = self.json.get('Endpoints')
+        if not endpoint_col:
+            raise exceptions.MissingAttributeError(attribute='Endpoints',
+                                                   resource=self._path)
+        return utils.get_resource_identity(endpoint_col)
+
+    @property
+    def endpoints(self):
+        """Property to provide reference to `EndpointCollection` instance
+
+        It is calculated once when it is queried for the first time. On
+        refresh, this property is reset.
+        """
+        if self._endpoints is None:
+            self._endpoints = endpoint.EndpointCollection(
+                self._conn, self._get_endpoint_collection_path(),
+                redfish_version=self.redfish_version)
+
+        return self._endpoints
+
     def refresh(self):
         super(StorageService, self).refresh()
         self._volumes = None
         self._storage_pools = None
         self._drives = None
+        self._endpoints = None
 
 
 class StorageServiceCollection(base.ResourceCollectionBase):
