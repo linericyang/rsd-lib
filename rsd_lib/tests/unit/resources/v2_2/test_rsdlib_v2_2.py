@@ -26,6 +26,7 @@ from rsd_lib.resources.v2_1.node import node as v2_1_node
 from rsd_lib.resources.v2_1.storage_service import storage_service \
     as v2_1_storage_service
 from rsd_lib.resources import v2_2
+from rsd_lib.resources.v2_2.node import node as v2_2_node
 from rsd_lib.resources.v2_2.system import system as v2_2_system
 from rsd_lib.resources.v2_2.telemetry import telemetry as v2_2_telemetry
 
@@ -66,7 +67,7 @@ class RSDLibV2_2TestCase(testtools.TestCase):
             self.rsd._conn, 'fake-system-id',
             redfish_version=self.rsd.redfish_version)
 
-    @mock.patch.object(v2_1_node, 'NodeCollection', autospec=True)
+    @mock.patch.object(v2_2_node, 'NodeCollection', autospec=True)
     def test_get_node_collection(self, mock_node_collection):
         self.rsd.get_node_collection()
         mock_node_collection.assert_called_once_with(

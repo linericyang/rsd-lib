@@ -16,6 +16,7 @@
 from sushy.resources import base
 
 from rsd_lib.resources import v2_1
+from rsd_lib.resources.v2_2.node import node
 from rsd_lib.resources.v2_2.system import system
 from rsd_lib.resources.v2_2.telemetry import telemetry
 
@@ -56,6 +57,16 @@ class RSDLibV2_2(v2_1.RSDLibV2_1):
         """
         return system.SystemCollection(self._conn, self._systems_path,
                                        redfish_version=self.redfish_version)
+
+    def get_node_collection(self):
+        """Get the NodeCollection object
+
+        :raises: MissingAttributeError, if the collection attribute is
+            not found
+        :returns: a NodeCollection object
+        """
+        return node.NodeCollection(self._conn, self._nodes_path,
+                                   redfish_version=self.redfish_version)
 
     def get_telemetry_service(self):
         """Given the identity return a Telemetry Service object
