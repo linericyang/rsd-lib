@@ -253,30 +253,275 @@ class NodeCollectionTestCase(testtools.TestCase):
             '/redfish/v1/Nodes/Actions/Allocate', data={})
         self.assertEqual(result, '/redfish/v1/Nodes/1')
 
-    def test_compose_node_reqs(self):
+    def test_compose_node(self):
         reqs = {
             'Name': 'test',
             'Description': 'this is a test node',
             'Processors': [{
-                'TotalCores': 4
+                'TotalCores': 4,
+                'ProcessorType': 'FPGA',
+                'Oem': {
+                    'Brand': 'Platinum',
+                    'Capabilities': ['sse']
+                }
             }],
             'Memory': [{
                 'CapacityMiB': 8000
             }],
+            'RemoteDrives': [{
+                'CapacityGiB': 80,
+                'Protocol': 'NVMeOverFabrics',
+                'Master': {
+                    'Type': 'Snapshot',
+                    'Resource': {
+                        '@odata.id':
+                            '/redfish/v1/StorageServices/NVMeoE1/Volumes/102'
+                    }
+                },
+                'Resource': {
+                    '@odata.id':
+                        '/redfish/v1/StorageServices/NVMeoE1/Volumes/102'
+                }
+            }],
+            'Security': {
+                'TpmPresent': True,
+                'TpmInterfaceType': 'TPM2_0',
+                'TxtEnabled': True,
+                'ClearTPMOnDelete': True
+            },
             'TotalSystemCoreCount': 8,
             'TotalSystemMemoryMiB': 16000
         }
         result = self.node_col.compose_node(
             name='test', description='this is a test node',
-            processor_req=[{'TotalCores': 4}],
+            processor_req=[{
+                'TotalCores': 4,
+                'ProcessorType': 'FPGA',
+                'Oem': {
+                    'Brand': 'Platinum',
+                    'Capabilities': ['sse']
+                }
+            }],
             memory_req=[{'CapacityMiB': 8000}],
+            remote_drive_req=[{
+                'CapacityGiB': 80,
+                'Protocol': 'NVMeOverFabrics',
+                'Master': {
+                    'Type': 'Snapshot',
+                    'Resource': {
+                        '@odata.id':
+                            '/redfish/v1/StorageServices/NVMeoE1/Volumes/102'
+                    }
+                },
+                'Resource': {
+                    '@odata.id':
+                        '/redfish/v1/StorageServices/NVMeoE1/Volumes/102'
+                }
+            }],
+            security_req={
+                'TpmPresent': True,
+                'TpmInterfaceType': 'TPM2_0',
+                'TxtEnabled': True,
+                'ClearTPMOnDelete': True
+            },
             total_system_core_req=8,
             total_system_memory_req=16000)
         self.node_col._conn.post.assert_called_once_with(
             '/redfish/v1/Nodes/Actions/Allocate', data=reqs)
         self.assertEqual(result, '/redfish/v1/Nodes/1')
 
-    def test_compose_node_invalid_reqs(self):
-        self.assertRaises(jsonschema.exceptions.ValidationError,
-                          self.node_col.compose_node,
-                          processor_req='invalid')
+    def test_compose_node_with_invalid_reqs(self):
+        # Wrong processor type
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            ("'invalid' is not one of \['CPU', 'FPGA', 'GPU', 'DSP', "
+             "'Accelerator', 'OEM'\]")):
+
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                processor_req=[{
+                    'TotalCores': 4,
+                    'ProcessorType': 'invalid'}])
+
+        # Wrong processor Oem Brand
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            ("'invalid' is not one of \['E3', 'E5'")):
+
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                processor_req=[{
+                    'TotalCores': 4,
+                    'Oem': {
+                        'Brand': 'invalid',
+                        'Capabilities': ['sse']
+                    }
+                }])
+
+        # Wrong processor Oem Capabilities
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            ("'sse' is not of type 'array'")):
+
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                processor_req=[{
+                    'TotalCores': 4,
+                    'Oem': {
+                        'Brand': 'E3',
+                        'Capabilities': 'sse'
+                    }
+                }])
+
+        # Wrong processor Oem Capabilities
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            ("0 is not of type 'string'")):
+
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                processor_req=[{
+                    'TotalCores': 4,
+                    'Oem': {
+                        'Brand': 'E3',
+                        'Capabilities': [0]
+                    }
+                }])
+
+        # Wrong remote drive CapacityGiB
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            ("'invalid' is not of type 'number'")):
+
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                remote_drive_req=[{
+                    'CapacityGiB': 'invalid',
+                    'Protocol': 'NVMeOverFabrics',
+                    'Master': {
+                        'Type': 'Snapshot',
+                        'Resource': {
+                            '@odata.id':
+                                '/redfish/v1/StorageServices/NVMeoE1/Volumes/'
+                                '102'
+                        }
+                    },
+                    'Resource': {
+                        '@odata.id':
+                            '/redfish/v1/StorageServices/NVMeoE1/Volumes/102'
+                        }
+                }])
+
+        # Wrong remote drive Protocol
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            ("'invalid' is not one of \['iSCSI', 'NVMeOverFabrics'\]")):
+
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                remote_drive_req=[{
+                    'CapacityGiB': 80,
+                    'Protocol': 'invalid',
+                    'Master': {
+                        'Type': 'Snapshot',
+                        'Resource': {
+                            '@odata.id':
+                                '/redfish/v1/StorageServices/NVMeoE1/Volumes/'
+                                '102'
+                        }
+                    },
+                    'Resource': {
+                        '@odata.id':
+                            '/redfish/v1/StorageServices/NVMeoE1/Volumes/102'
+                        }
+                }])
+
+        # Wrong remote drive Master Type
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            ("'invalid' is not one of \['Snapshot', 'Clone'\]")):
+
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                remote_drive_req=[{
+                    'CapacityGiB': 80,
+                    'Protocol': 'iSCSI',
+                    'Master': {
+                        'Type': 'invalid',
+                        'Resource': {
+                            '@odata.id':
+                                '/redfish/v1/StorageServices/NVMeoE1/Volumes/'
+                                '102'
+                        }
+                    },
+                    'Resource': {
+                        '@odata.id':
+                            '/redfish/v1/StorageServices/NVMeoE1/Volumes/102'
+                        }
+                }])
+
+        # Wrong security parameter "TpmPresent"
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            "'invalid' is not of type 'boolean'"):
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                security_req={
+                    'TpmPresent': 'invalid',
+                    'TpmInterfaceType': 'TPM2_0',
+                    'TxtEnabled': True,
+                    'ClearTPMOnDelete': True
+                })
+
+        # Wrong security parameter "TpmInterfaceType"
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            "True is not of type 'string'"):
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                security_req={
+                    'TpmPresent': False,
+                    'TpmInterfaceType': True,
+                    'TxtEnabled': True,
+                    'ClearTPMOnDelete': True
+                })
+
+        # Wrong security parameter "TxtEnabled"
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            "'invalid' is not of type 'boolean'"):
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                security_req={
+                    'TpmPresent': True,
+                    'TpmInterfaceType': 'TPM2_0',
+                    'TxtEnabled': 'invalid',
+                    'ClearTPMOnDelete': True
+                })
+
+        # Wrong security parameter "ClearTPMOnDelete"
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            "'invalid' is not of type 'boolean'"):
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                security_req={
+                    'TpmPresent': True,
+                    'TpmInterfaceType': 'TPM2_0',
+                    'TxtEnabled': True,
+                    'ClearTPMOnDelete': 'invalid'
+                })
+
+        # Wrong additional security parameter
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            ("Additional properties are not allowed \('invalid-key' was "
+             "unexpected\)")):
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                security_req={
+                    'TpmPresent': True,
+                    'TpmInterfaceType': 'TPM2_0',
+                    'TxtEnabled': False,
+                    'invalid-key': 'invalid-value'
+                })
