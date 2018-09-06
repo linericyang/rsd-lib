@@ -25,6 +25,20 @@ processor_req_schema = {
                 'enum': ['x86', 'x86-64', 'IA-64', 'ARM-A32',
                          'ARM-A64', 'MIPS32', 'MIPS64', 'OEM']
             },
+            'Oem': {
+                'type': 'object',
+                'properties': {
+                    'Brand': {
+                        'type': 'string',
+                        'enum': ['E3', 'E5', 'E7', 'X3', 'X5', 'X7', 'I3',
+                                 'I5', 'I7', 'Unknown']
+                    },
+                    'Capabilities': {
+                        'type': 'array',
+                        'items': [{'type': 'string'}]
+                    }
+                }
+            },
             'Resource': {
                 'type': 'object',
                 'properties': {

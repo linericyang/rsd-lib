@@ -43,7 +43,11 @@ class NodeCollectionTestCase(testtools.TestCase):
             'Description': 'this is a test node',
             'Processors': [{
                 'TotalCores': 4,
-                'ProcessorType': 'FPGA'
+                'ProcessorType': 'FPGA',
+                'Oem': {
+                    'Brand': 'Platinum',
+                    'Capabilities': ['sse']
+                }
             }],
             'Memory': [{
                 'CapacityMiB': 8000
@@ -60,7 +64,12 @@ class NodeCollectionTestCase(testtools.TestCase):
             name='test', description='this is a test node',
             processor_req=[{
                 'TotalCores': 4,
-                'ProcessorType': 'FPGA'}],
+                'ProcessorType': 'FPGA',
+                'Oem': {
+                    'Brand': 'Platinum',
+                    'Capabilities': ['sse']
+                }
+            }],
             memory_req=[{'CapacityMiB': 8000}],
             security_req={
                 'TpmPresent': True,
@@ -85,6 +94,51 @@ class NodeCollectionTestCase(testtools.TestCase):
                 processor_req=[{
                     'TotalCores': 4,
                     'ProcessorType': 'invalid'}])
+
+        # Wrong processor Oem Brand
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            ("'invalid' is not one of \['E3', 'E5'")):
+
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                processor_req=[{
+                    'TotalCores': 4,
+                    'Oem': {
+                        'Brand': 'invalid',
+                        'Capabilities': ['sse']
+                    }
+                }])
+
+        # Wrong processor Oem Capabilities
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            ("'sse' is not of type 'array'")):
+
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                processor_req=[{
+                    'TotalCores': 4,
+                    'Oem': {
+                        'Brand': 'E3',
+                        'Capabilities': 'sse'
+                    }
+                }])
+
+        # Wrong processor Oem Capabilities
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            ("0 is not of type 'string'")):
+
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                processor_req=[{
+                    'TotalCores': 4,
+                    'Oem': {
+                        'Brand': 'E3',
+                        'Capabilities': [0]
+                    }
+                }])
 
         # Wrong security parameter "TpmPresent"
         with self.assertRaisesRegex(

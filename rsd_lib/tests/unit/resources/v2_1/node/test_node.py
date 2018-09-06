@@ -486,7 +486,11 @@ class NodeCollectionTestCase(testtools.TestCase):
             'Name': 'test',
             'Description': 'this is a test node',
             'Processors': [{
-                'TotalCores': 4
+                'TotalCores': 4,
+                'Oem': {
+                    'Brand': 'E7',
+                    'Capabilities': ['sse']
+                }
             }],
             'Memory': [{
                 'CapacityMiB': 8000
@@ -496,7 +500,13 @@ class NodeCollectionTestCase(testtools.TestCase):
         }
         result = self.node_col.compose_node(
             name='test', description='this is a test node',
-            processor_req=[{'TotalCores': 4}],
+            processor_req=[{
+                'TotalCores': 4,
+                'Oem': {
+                    'Brand': 'E7',
+                    'Capabilities': ['sse']
+                }
+            }],
             memory_req=[{'CapacityMiB': 8000}],
             total_system_core_req=8,
             total_system_memory_req=16000)
@@ -508,3 +518,48 @@ class NodeCollectionTestCase(testtools.TestCase):
         self.assertRaises(jsonschema.exceptions.ValidationError,
                           self.node_col.compose_node,
                           processor_req='invalid')
+
+        # Wrong processor Oem Brand
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            ("'Platinum' is not one of \['E3', 'E5'")):
+
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                processor_req=[{
+                    'TotalCores': 4,
+                    'Oem': {
+                        'Brand': 'Platinum',
+                        'Capabilities': ['sse']
+                    }
+                }])
+
+        # Wrong processor Oem Capabilities
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            ("'sse' is not of type 'array'")):
+
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                processor_req=[{
+                    'TotalCores': 4,
+                    'Oem': {
+                        'Brand': 'E3',
+                        'Capabilities': 'sse'
+                    }
+                }])
+
+        # Wrong processor Oem Capabilities
+        with self.assertRaisesRegex(
+            jsonschema.exceptions.ValidationError,
+            ("0 is not of type 'string'")):
+
+            self.node_col.compose_node(
+                name='test', description='this is a test node',
+                processor_req=[{
+                    'TotalCores': 4,
+                    'Oem': {
+                        'Brand': 'E3',
+                        'Capabilities': [0]
+                    }
+                }])
