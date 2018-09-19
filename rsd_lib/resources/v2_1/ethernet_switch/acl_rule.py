@@ -13,10 +13,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import logging
+
+from jsonschema import validate
 from sushy.resources import base
 from sushy import utils
 
+from rsd_lib.resources.v2_1.ethernet_switch import schemas as acl_rule_schema
 from rsd_lib import utils as rsd_lib_utils
+
+LOG = logging.getLogger(__name__)
 
 
 class IPSourceField(base.CompositeField):
@@ -117,3 +123,16 @@ class ACLRuleCollection(base.ResourceCollectionBase):
         super(ACLRuleCollection, self).__init__(connector,
                                                 path,
                                                 redfish_version)
+
+    def add_acl_rule(self, acl_rule_req):
+        """Add a acl rule
+
+        :param acl_rule: JSON for acl_rule
+        :returns: The location of the acl rule
+        """
+        target_uri = self._path
+        validate(acl_rule_req, acl_rule_schema.acl_rule_req_schema)
+        resp = self._conn.post(target_uri, data=acl_rule_req)
+        acl_rule_url = resp.headers['Location']
+        LOG.info("ACL Rule add at %s", acl_rule_url)
+        return acl_rule_url[acl_rule_url.find(self._path):]
