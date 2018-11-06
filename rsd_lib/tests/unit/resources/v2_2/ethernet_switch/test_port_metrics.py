@@ -27,7 +27,7 @@ class PortMetricsTestCase(testtools.TestCase):
         super(PortMetricsTestCase, self).setUp()
         self.conn = mock.Mock()
         with open('rsd_lib/tests/unit/json_samples/v2_2/'
-                  'port_metrics.json', 'r') as f:
+                  'ethernet_switch_port_metrics.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
 
         self.port_metrics_inst = port_metrics.PortMetrics(

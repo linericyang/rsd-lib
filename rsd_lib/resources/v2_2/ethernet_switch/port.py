@@ -14,6 +14,7 @@
 #    under the License.
 
 from sushy import exceptions
+from sushy.resources import base
 
 from rsd_lib.resources.v2_1.ethernet_switch import port as v2_1_port
 from rsd_lib.resources.v2_2.ethernet_switch import port_metrics
@@ -50,3 +51,20 @@ class Port(v2_1_port.Port):
     def refresh(self):
         super(Port, self).refresh()
         self._metrics = None
+
+
+class PortCollection(base.ResourceCollectionBase):
+
+    @property
+    def _resource_type(self):
+        return Port
+
+    def __init__(self, connector, path, redfish_version=None):
+        """A class representing an Port
+
+        :param connector: A Connector instance
+        :param path: The canonical path to the Port collection resource
+        :param redfish_version: The version of RedFish. Used to construct
+            the object according to schema of the given version.
+        """
+        super(PortCollection, self).__init__(connector, path, redfish_version)

@@ -28,8 +28,8 @@ class PortTestCase(testtools.TestCase):
     def setUp(self):
         super(PortTestCase, self).setUp()
         self.conn = mock.Mock()
-        with open('rsd_lib/tests/unit/json_samples/v2_2/port.json',
-                  'r') as f:
+        with open('rsd_lib/tests/unit/json_samples/v2_2/'
+                  'ethernet_switch_port.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
 
         self.port_inst = port.Port(
@@ -52,8 +52,8 @@ class PortTestCase(testtools.TestCase):
         self.assertIsNone(self.port_inst._metrics)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
-        with open('rsd_lib/tests/unit/json_samples/v2_2/port_metrics.json',
-                  'r') as f:
+        with open('rsd_lib/tests/unit/json_samples/v2_2/'
+                  'ethernet_switch_port_metrics.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
         # | WHEN |
         actual_metrics = self.port_inst.metrics
@@ -72,25 +72,68 @@ class PortTestCase(testtools.TestCase):
 
     def test_metrics_on_refresh(self):
         # | GIVEN |
-        with open('rsd_lib/tests/unit/json_samples/v2_2/port_metrics.json',
-                  'r') as f:
+        with open('rsd_lib/tests/unit/json_samples/v2_2/'
+                  'ethernet_switch_port_metrics.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
         # | WHEN & THEN |
         self.assertIsInstance(self.port_inst.metrics,
                               port_metrics.PortMetrics)
 
         # On refreshing the port instance...
-        with open('rsd_lib/tests/unit/json_samples/v2_2/port.json',
-                  'r') as f:
+        with open('rsd_lib/tests/unit/json_samples/v2_2/'
+                  'ethernet_switch_port.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
         self.port_inst.refresh()
         # | WHEN & THEN |
         self.assertIsNone(self.port_inst._metrics)
 
         # | GIVEN |
-        with open('rsd_lib/tests/unit/json_samples/v2_2/port_metrics.json',
-                  'r') as f:
+        with open('rsd_lib/tests/unit/json_samples/v2_2/'
+                  'ethernet_switch_port_metrics.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
         # | WHEN & THEN |
         self.assertIsInstance(self.port_inst.metrics,
                               port_metrics.PortMetrics)
+
+
+class PortCollectionTestCase(testtools.TestCase):
+
+    def setUp(self):
+        super(PortCollectionTestCase, self).setUp()
+        self.conn = mock.Mock()
+        with open(
+            'rsd_lib/tests/unit/json_samples/v2_2/'
+                'ethernet_switch_port_collection.json', 'r') as f:
+            self.conn.get.return_value.json.return_value = json.loads(f.read())
+            self.port_col = port.PortCollection(
+                self.conn, '/redfish/v1/EthernetSwitches/Switch1/Ports',
+                redfish_version='1.0.2')
+
+    def test__parse_attributes(self):
+        self.port_col._parse_attributes()
+        self.assertEqual('1.0.2', self.port_col.redfish_version)
+        self.assertEqual(
+            'Ethernet Switch Port Collection',
+            self.port_col.name)
+        self.assertEqual(
+            ('/redfish/v1/EthernetSwitches/Switch1/Ports/Port1',),
+            self.port_col.members_identities)
+
+    @mock.patch.object(port, 'Port', autospec=True)
+    def test_get_member(self, mock_port):
+        self.port_col.get_member(
+            '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1')
+        mock_port.assert_called_once_with(
+            self.port_col._conn,
+            '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1',
+            redfish_version=self.port_col.redfish_version)
+
+    @mock.patch.object(port, 'Port', autospec=True)
+    def test_get_members(self, mock_port):
+        members = self.port_col.get_members()
+        mock_port.assert_called_with(
+            self.port_col._conn,
+            '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1',
+            redfish_version=self.port_col.redfish_version)
+        self.assertIsInstance(members, list)
+        self.assertEqual(1, len(members))
