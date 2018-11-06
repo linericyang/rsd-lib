@@ -18,14 +18,14 @@ import mock
 import testtools
 
 from rsd_lib.resources.v2_1.chassis import chassis as v2_1_chassis
-from rsd_lib.resources.v2_1.ethernet_switch import ethernet_switch \
-    as v2_1_ethernet_switch
 from rsd_lib.resources.v2_1.fabric import fabric as v2_1_fabric
 from rsd_lib.resources.v2_1.manager import manager as v2_1_manager
 from rsd_lib.resources.v2_1.node import node as v2_1_node
 from rsd_lib.resources.v2_1.storage_service import storage_service \
     as v2_1_storage_service
 from rsd_lib.resources import v2_2
+from rsd_lib.resources.v2_2.ethernet_switch import ethernet_switch \
+    as v2_2_ethernet_switch
 from rsd_lib.resources.v2_2.node import node as v2_2_node
 from rsd_lib.resources.v2_2.system import system as v2_2_system
 from rsd_lib.resources.v2_2.telemetry import telemetry as v2_2_telemetry
@@ -147,7 +147,7 @@ class RSDLibV2_2TestCase(testtools.TestCase):
             self.rsd._conn, '/redfish/v1/TelemetryService',
             redfish_version=self.rsd.redfish_version)
 
-    @mock.patch.object(v2_1_ethernet_switch,
+    @mock.patch.object(v2_2_ethernet_switch,
                        'EthernetSwitchCollection',
                        autospec=True)
     def test_get_ethernet_switch_collection(self,
@@ -157,7 +157,7 @@ class RSDLibV2_2TestCase(testtools.TestCase):
             self.rsd._conn, '/redfish/v1/EthernetSwitches',
             redfish_version=self.rsd.redfish_version)
 
-    @mock.patch.object(v2_1_ethernet_switch, 'EthernetSwitch', autospec=True)
+    @mock.patch.object(v2_2_ethernet_switch, 'EthernetSwitch', autospec=True)
     def test_get_ethernet_switch(self, mock_ethernet_switch_service):
         self.rsd.get_ethernet_switch('fake-ethernet-switch-id')
         mock_ethernet_switch_service.assert_called_once_with(

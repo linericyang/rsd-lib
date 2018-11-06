@@ -16,6 +16,7 @@
 from sushy.resources import base
 
 from rsd_lib.resources import v2_1
+from rsd_lib.resources.v2_2.ethernet_switch import ethernet_switch
 from rsd_lib.resources.v2_2.node import node
 from rsd_lib.resources.v2_2.system import system
 from rsd_lib.resources.v2_2.telemetry import telemetry
@@ -76,3 +77,27 @@ class RSDLibV2_2(v2_1.RSDLibV2_1):
         """
         return telemetry.Telemetry(self._conn, self._telemetry_service_path,
                                    redfish_version=self.redfish_version)
+
+    def get_ethernet_switch_collection(self):
+        """Get the EthernetSwitchCollection object
+
+        :raises: MissingAttributeError, if the collection attribute is
+            not found
+        :returns: a EthernetSwitchCollection object
+        """
+        return ethernet_switch.EthernetSwitchCollection(
+            self._conn,
+            self._ethernet_switches_path,
+            redfish_version=self.redfish_version
+        )
+
+    def get_ethernet_switch(self, identity):
+        """Given the identity return a EthernetSwitch object
+
+        :param identity: The identity of the EthernetSwitch resource
+        :returns: The EthernetSwitch object
+        """
+        return ethernet_switch.EthernetSwitch(
+            self._conn,
+            identity,
+            redfish_version=self.redfish_version)
