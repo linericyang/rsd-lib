@@ -74,7 +74,7 @@ class StoragePool(base.ResourceBase):
     capacity_sources = CapacitySourcesField('CapacitySources')
     """The storage pool capacity source info"""
 
-    identifiers = IdentifiersField('Identifiers')
+    identifiers = IdentifiersField('Identifier')
     """These identifiers list of this volume"""
 
     _allocated_volumes = None  # ref to allocated volumes collection
