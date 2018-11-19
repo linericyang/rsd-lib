@@ -46,6 +46,11 @@ class StoragePoolTestCase(testtools.TestCase):
         self.assertEqual('Enabled', self.storage_pool_inst.status.state)
         self.assertEqual('OK', self.storage_pool_inst.status.health)
         self.assertEqual('OK', self.storage_pool_inst.status.health_rollup)
+        self.assertEqual(
+            '/dev/nvme5', self.storage_pool_inst.identifier.durable_name)
+        self.assertEqual(
+            'SystemPath',
+            self.storage_pool_inst.identifier.durable_name_format)
         self.assertEqual(512174850048,
                          self.storage_pool_inst.capacity.allocated_bytes)
         self.assertEqual(3071983104,
