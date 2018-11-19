@@ -5,6 +5,10 @@
     "Description": "Base storage pool",
     "Id": "2",
     "Name": "BasePool",
+    "Identifier" : {
+        "DurableName" : "/dev/nvme5",
+        "DurableNameFormat" : "SystemPath"
+    },
     "AllocatedVolumes": {
         "@odata.id": "/redfish/v1/StorageServices/NVMeoE1/StoragePools/2/AllocatedVolumes"
     },
