@@ -17,12 +17,10 @@ import logging
 
 from sushy.resources import base
 
-from rsd_lib.resources import base as rsd_base
-
 LOG = logging.getLogger(__name__)
 
 
-class TargetLunField(rsd_base.FieldList):
+class TargetLunField(base.ListField):
     lun = base.Field('LUN')
 
 
@@ -33,7 +31,7 @@ class ISCSIAddressField(base.CompositeField):
     target_portal_port = base.Field('TargetPortalPort')
 
 
-class AddressesField(rsd_base.FieldList):
+class AddressesField(base.ListField):
     iscsi = ISCSIAddressField('iSCSI')
 
 
@@ -41,7 +39,7 @@ class ISCSIInitiatorField(base.CompositeField):
     iqn = base.Field('InitiatorIQN')
 
 
-class InitiatorsField(rsd_base.FieldList):
+class InitiatorsField(base.ListField):
     iscsi = ISCSIInitiatorField('iSCSI')
 
 

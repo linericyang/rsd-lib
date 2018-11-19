@@ -17,13 +17,12 @@ import logging
 
 from sushy.resources import base
 
-from rsd_lib.resources import base as rsd_base
 from rsd_lib import utils
 
 LOG = logging.getLogger(__name__)
 
 
-class IdentifiersField(rsd_base.FieldList):
+class IdentifiersField(base.ListField):
     name_format = base.Field('DurableNameFormat')
     name = base.Field('DurableName')
 
@@ -33,7 +32,7 @@ class EntityLinkField(base.CompositeField):
     identity = base.Field('@odata.id')
 
 
-class ConnectedEntitiesField(rsd_base.FieldList):
+class ConnectedEntitiesField(base.ListField):
     entity_type = base.Field('EntityType')
     entity_role = base.Field('EntityRole')
     entity_link = base.Field('EntityLink',
