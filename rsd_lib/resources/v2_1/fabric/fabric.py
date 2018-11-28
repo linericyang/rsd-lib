@@ -15,13 +15,12 @@
 
 import logging
 
-from sushy import exceptions
 from sushy.resources import base
+from sushy import utils
 
 from rsd_lib.resources.v2_1.fabric import endpoint
 from rsd_lib.resources.v2_1.fabric import switch
 from rsd_lib.resources.v2_1.fabric import zone
-from rsd_lib import utils as rsd_lib_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -50,12 +49,6 @@ class Fabric(base.ResourceBase):
 
     status = StatusField('Status')
 
-    _endpoints = None  # ref to EndpointCollection instance
-
-    _switches = None  # ref to SwitchCollection instance
-
-    _zones = None  # ref to ZoneCollection instance
-
     def __init__(self, connector, identity, redfish_version=None):
         """A class representing a Fabric
 
@@ -69,75 +62,51 @@ class Fabric(base.ResourceBase):
 
     def _get_endpoint_collection_path(self):
         """Helper function to find the EndpointCollection path"""
-        endpoint_col = self.json.get('Endpoints')
-        if not endpoint_col:
-            raise exceptions.MissingAttributeError(attribute='Endpoints',
-                                                   resource=self._path)
-        return rsd_lib_utils.get_resource_identity(endpoint_col)
+        return utils.get_sub_resource_path_by(self, 'Endpoints')
 
     @property
+    @utils.cache_it
     def endpoints(self):
         """Property to provide reference to `EndpointCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._endpoints is None:
-            self._endpoints = endpoint.EndpointCollection(
-                self._conn, self._get_endpoint_collection_path(),
-                redfish_version=self.redfish_version)
-
-        return self._endpoints
+        return endpoint.EndpointCollection(
+            self._conn, self._get_endpoint_collection_path(),
+            redfish_version=self.redfish_version)
 
     def _get_switch_collection_path(self):
         """Helper function to find the SwitchCollection path"""
-        switch_col = self.json.get('Switches')
-        if not switch_col:
-            raise exceptions.MissingAttributeError(attribute='Switches',
-                                                   resource=self._path)
-        return switch_col.get('@odata.id')
+        return utils.get_sub_resource_path_by(self, 'Switches')
 
     @property
+    @utils.cache_it
     def switches(self):
         """Property to provide reference to `SwitchCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._switches is None:
-            self._switches = switch.SwitchCollection(
-                self._conn, self._get_switch_collection_path(),
-                redfish_version=self.redfish_version)
-
-        return self._switches
+        return switch.SwitchCollection(
+            self._conn, self._get_switch_collection_path(),
+            redfish_version=self.redfish_version)
 
     def _get_zone_collection_path(self):
         """Helper function to find the ZoneCollection path"""
-        zone_col = self.json.get('Zones')
-        if not zone_col:
-            raise exceptions.MissingAttributeError(attribute='Zones',
-                                                   resource=self._path)
-        return rsd_lib_utils.get_resource_identity(zone_col)
+        return utils.get_sub_resource_path_by(self, 'Zones')
 
     @property
+    @utils.cache_it
     def zones(self):
         """Property to provide reference to `ZoneCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._zones is None:
-            self._zones = zone.ZoneCollection(
-                self._conn, self._get_zone_collection_path(),
-                redfish_version=self.redfish_version)
-
-        return self._zones
-
-    def refresh(self):
-        super(Fabric, self).refresh()
-        self._endpoints = None
-        self._zones = None
-        self._switches = None
+        return zone.ZoneCollection(
+            self._conn, self._get_zone_collection_path(),
+            redfish_version=self.redfish_version)
 
 
 class FabricCollection(base.ResourceCollectionBase):

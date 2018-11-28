@@ -13,44 +13,30 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from sushy import exceptions
 from sushy.resources import base
+from sushy import utils
 
 from rsd_lib.resources.v2_1.ethernet_switch import port as v2_1_port
 from rsd_lib.resources.v2_2.ethernet_switch import port_metrics
 
-from rsd_lib import utils
-
 
 class Port(v2_1_port.Port):
 
-    _metrics = None  # ref to Port metrics instance
-
     def _get_metrics_path(self):
         """Helper function to find the Port metrics path"""
-        metrics = self.json.get('Metrics')
-        if not metrics:
-            raise exceptions.MissingAttributeError(attribute='Metrics',
-                                                   resource=self._path)
-        return utils.get_resource_identity(metrics)
+        return utils.get_sub_resource_path_by(self, 'Metrics')
 
     @property
+    @utils.cache_it
     def metrics(self):
         """Property to provide reference to `Metrics` instance
 
         It is calculated once the first time it is queried. On refresh,
         this property is reset.
         """
-        if self._metrics is None:
-            self._metrics = port_metrics.PortMetrics(
-                self._conn, self._get_metrics_path(),
-                redfish_version=self.redfish_version)
-
-        return self._metrics
-
-    def refresh(self):
-        super(Port, self).refresh()
-        self._metrics = None
+        return port_metrics.PortMetrics(
+            self._conn, self._get_metrics_path(),
+            redfish_version=self.redfish_version)
 
 
 class PortCollection(base.ResourceCollectionBase):

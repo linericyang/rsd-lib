@@ -13,12 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from sushy import exceptions
 from sushy.resources import base
+from sushy import utils
 
 from rsd_lib.resources.v2_2.telemetry.metric_definitions \
     import metric_definitions
-from rsd_lib import utils
 
 
 class StatusField(base.CompositeField):
@@ -31,32 +30,18 @@ class Telemetry(base.ResourceBase):
     status = StatusField('Status')
     """The telemetry service status"""
 
-    _metric_definitions = None
-    """ref to telemetry metrics definitions instance"""
-
     def _get_metric_definitions_path(self):
         """Helper function to find the metric definitions path"""
-        metrics = self.json.get('MetricDefinitions')
-        if not metrics:
-            raise exceptions.MissingAttributeError(
-                attribute='MetricDefinitions', resource=self._path)
-        return utils.get_resource_identity(metrics)
+        return utils.get_sub_resource_path_by(self, 'MetricDefinitions')
 
     @property
+    @utils.cache_it
     def metric_definitions(self):
         """Property to provide reference to `MetricDefinitions` instance
 
         It is calculated once the first time it is queried. On refresh,
         this property is reset.
         """
-        if self._metric_definitions is None:
-            self._metric_definitions = \
-                metric_definitions.MetricDefinitionsCollection(
-                    self._conn, self._get_metric_definitions_path(),
-                    redfish_version=self.redfish_version)
-
-        return self._metric_definitions
-
-    def refresh(self):
-        super(Telemetry, self).refresh()
-        self._metric_definitions = None
+        return metric_definitions.MetricDefinitionsCollection(
+            self._conn, self._get_metric_definitions_path(),
+            redfish_version=self.redfish_version)

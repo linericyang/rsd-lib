@@ -14,6 +14,7 @@
 #    under the License.
 
 from sushy.resources import base
+from sushy import utils
 
 from rsd_lib.resources.v2_1.ethernet_switch import ethernet_switch \
     as v2_1_ethernet_switch
@@ -23,18 +24,16 @@ from rsd_lib.resources.v2_2.ethernet_switch import port
 class EthernetSwitch(v2_1_ethernet_switch.EthernetSwitch):
 
     @property
+    @utils.cache_it
     def ports(self):
         """Property to provide reference to `PortCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._ports is None:
-            self._ports = port.PortCollection(
-                self._conn, self._get_port_collection_path(),
-                redfish_version=self.redfish_version)
-
-        return self._ports
+        return port.PortCollection(
+            self._conn, self._get_port_collection_path(),
+            redfish_version=self.redfish_version)
 
 
 class EthernetSwitchCollection(base.ResourceCollectionBase):

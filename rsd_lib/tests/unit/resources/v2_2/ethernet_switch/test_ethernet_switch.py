@@ -35,8 +35,6 @@ class EthernetSwitchTestCase(testtools.TestCase):
             redfish_version='1.0.2')
 
     def test_ports(self):
-        # check for the underpath variable value
-        self.assertIsNone(self.ethernet_switch_inst._ports)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_2/'
@@ -70,10 +68,9 @@ class EthernetSwitchTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_2/'
                   'ethernet_switch.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.ethernet_switch_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.ethernet_switch_inst._ports)
+        self.ethernet_switch_inst.invalidate()
+        self.ethernet_switch_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_2/'

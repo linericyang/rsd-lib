@@ -81,8 +81,6 @@ class PortTestCase(testtools.TestCase):
         self.assertEqual('Logical', self.port_inst.port_class)
         self.assertEqual('LinkAggregationStatic', self.port_inst.port_mode)
         self.assertEqual('Upstream', self.port_inst.port_type)
-        self.assertIsNone(self.port_inst._vlans)
-        self.assertIsNone(self.port_inst._static_macs)
         self.assertEqual(
             '/redfish/v1/EthernetSwitches/Switch1/Ports/Port1/VLANs/VLAN1',
             self.port_inst.links.primary_vlan)
@@ -109,8 +107,6 @@ class PortTestCase(testtools.TestCase):
             self.port_inst._get_static_mac_collection_path)
 
     def test_static_mac(self):
-        # checkou for the underpath variable value
-        self.assertIsNone(self.port_inst._static_macs)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -142,10 +138,9 @@ class PortTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'ethernet_switch_port.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.port_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.port_inst._static_macs)
+        self.port_inst.invalidate()
+        self.port_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -167,8 +162,6 @@ class PortTestCase(testtools.TestCase):
             self.port_inst._get_vlan_collection_path)
 
     def test_vlan(self):
-        # checkou for the underpath variable value
-        self.assertIsNone(self.port_inst._vlans)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -200,10 +193,9 @@ class PortTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'ethernet_switch_port.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.port_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.port_inst._vlans)
+        self.port_inst.invalidate()
+        self.port_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'

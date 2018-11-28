@@ -49,8 +49,6 @@ class ZoneTestCase(testtools.TestCase):
         self.assertEqual('OK', self.zone_inst.status.health)
 
     def test_endpoints(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.zone_inst._endpoints)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -84,10 +82,9 @@ class ZoneTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'zone.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.zone_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.zone_inst._endpoints)
+        self.zone_inst.invalidate()
+        self.zone_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'

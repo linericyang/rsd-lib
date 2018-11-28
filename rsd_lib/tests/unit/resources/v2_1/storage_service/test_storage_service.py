@@ -48,9 +48,6 @@ class StorageServiceTestCase(testtools.TestCase):
         self.assertEqual('Enabled', self.storage_service_inst.status.state)
         self.assertEqual('OK', self.storage_service_inst.status.health)
         self.assertEqual('OK', self.storage_service_inst.status.health_rollup)
-        self.assertIsNone(self.storage_service_inst._logical_drives)
-        self.assertIsNone(self.storage_service_inst._physical_drives)
-        self.assertIsNone(self.storage_service_inst._remote_targets)
 
     def test__get_logical_drive_collection_path_missing_processors_attr(self):
         self.storage_service_inst._json.pop('LogicalDrives')
@@ -59,8 +56,6 @@ class StorageServiceTestCase(testtools.TestCase):
             self.storage_service_inst._get_logical_drive_collection_path)
 
     def test_logical_drives(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.storage_service_inst._logical_drives)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -94,10 +89,9 @@ class StorageServiceTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'storage_service.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.storage_service_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.storage_service_inst._logical_drives)
+        self.storage_service_inst.invalidate()
+        self.storage_service_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -110,12 +104,10 @@ class StorageServiceTestCase(testtools.TestCase):
     def test__get_physical_drive_collection_path_missing_processors_attr(self):
         self.storage_service_inst._json.pop('Drives')
         self.assertRaisesRegex(
-            exceptions.MissingAttributeError, 'attribute PhysicalDrives',
+            exceptions.MissingAttributeError, 'attribute Drives',
             self.storage_service_inst._get_physical_drive_collection_path)
 
     def test_physical_drives(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.storage_service_inst._physical_drives)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -149,10 +141,9 @@ class StorageServiceTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'storage_service.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.storage_service_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.storage_service_inst._physical_drives)
+        self.storage_service_inst.invalidate()
+        self.storage_service_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -169,8 +160,6 @@ class StorageServiceTestCase(testtools.TestCase):
             self.storage_service_inst._get_remote_target_collection_path)
 
     def test_remote_targets(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.storage_service_inst._remote_targets)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -204,10 +193,9 @@ class StorageServiceTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'storage_service.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.storage_service_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.storage_service_inst._remote_targets)
+        self.storage_service_inst.invalidate()
+        self.storage_service_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'

@@ -47,7 +47,6 @@ class ACLTestCase(testtools.TestCase):
                          self.acl_inst.name)
         self.assertEqual('Switch ACL', self.acl_inst.description)
         self.assertEqual({}, self.acl_inst.oem)
-        self.assertIsNone(self.acl_inst._rules)
 
     def test__get_acl_rule_collection_path(self):
         self.assertEqual(
@@ -57,12 +56,10 @@ class ACLTestCase(testtools.TestCase):
     def test__get_acl_rule_collection_path_missing_attr(self):
         self.acl_inst._json.pop('Rules')
         self.assertRaisesRegex(
-            exceptions.MissingAttributeError, 'attribute ACLRule',
+            exceptions.MissingAttributeError, 'attribute Rules',
             self.acl_inst._get_acl_rule_collection_path)
 
     def test_acl_rule(self):
-        # check for the underpath variable value
-        self.assertIsNone(self.acl_inst._rules)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -96,10 +93,9 @@ class ACLTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'ethernet_switch_acl.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.acl_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.acl_inst._rules)
+        self.acl_inst.invalidate()
+        self.acl_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'

@@ -52,8 +52,6 @@ class TestEthernetSwtich(base.TestCase):
         self.assertEqual('TOR', self.ethernet_switch_inst.role)
         self.assertEqual('Enabled', self.ethernet_switch_inst.status.state)
         self.assertEqual('OK', self.ethernet_switch_inst.status.health)
-        self.assertIsNone(self.ethernet_switch_inst._acls)
-        self.assertIsNone(self.ethernet_switch_inst._ports)
         self.assertEqual('/redfish/v1/Chassis/FabricModule1',
                          self.ethernet_switch_inst.links.chassis)
         self.assertEqual(('/redfish/v1/Managers/PSME',),

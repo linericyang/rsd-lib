@@ -48,8 +48,6 @@ class PortTestCase(testtools.TestCase):
             self.port_inst._get_metrics_path()
 
     def test_metrics(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.port_inst._metrics)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_2/'
@@ -83,9 +81,9 @@ class PortTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_2/'
                   'ethernet_switch_port.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.port_inst.refresh()
-        # | WHEN & THEN |
-        self.assertIsNone(self.port_inst._metrics)
+
+        self.port_inst.invalidate()
+        self.port_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_2/'

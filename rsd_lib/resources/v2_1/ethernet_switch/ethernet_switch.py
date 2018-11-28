@@ -15,7 +15,6 @@
 
 import logging
 
-from sushy import exceptions
 from sushy.resources import base
 from sushy import utils
 
@@ -82,12 +81,6 @@ class EthernetSwitch(base.ResourceBase):
     status = StatusField('Status')
     """The ethernet switch status"""
 
-    _acls = None  # ref to ACLCollection instance
-    """The ethernet switch ACLs"""
-
-    _ports = None  # ref to PortCollection instance
-    """The ethernet switch ports"""
-
     links = LinksField('Links')
     """The links to ethernet switch"""
 
@@ -105,53 +98,35 @@ class EthernetSwitch(base.ResourceBase):
 
     def _get_port_collection_path(self):
         """Helper function to find the PortCollection path"""
-        port_col = self.json.get('Ports')
-        if not port_col:
-            raise exceptions.MissingAttributeError(attribute='Ports',
-                                                   resource=self._path)
-        return rsd_lib_utils.get_resource_identity(port_col)
+        return utils.get_sub_resource_path_by(self, 'Ports')
 
     @property
+    @utils.cache_it
     def ports(self):
         """Property to provide reference to `PortCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._ports is None:
-            self._ports = port.PortCollection(
-                self._conn, self._get_port_collection_path(),
-                redfish_version=self.redfish_version)
-
-        return self._ports
+        return port.PortCollection(
+            self._conn, self._get_port_collection_path(),
+            redfish_version=self.redfish_version)
 
     def _get_acl_collection_path(self):
         """Helper function to find the ACLCollection path"""
-        acl_col = self.json.get('ACLs')
-        if not acl_col:
-            raise exceptions.MissingAttributeError(attribute='ACLs',
-                                                   resource=self._path)
-        return rsd_lib_utils.get_resource_identity(acl_col)
+        return utils.get_sub_resource_path_by(self, 'ACLs')
 
     @property
+    @utils.cache_it
     def acls(self):
         """Property to provide reference to `ACLCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._acls is None:
-            self._acls = acl.ACLCollection(
-                self._conn, self._get_acl_collection_path(),
-                redfish_version=self.redfish_version
-            )
-
-        return self._acls
-
-    def refresh(self):
-        super(EthernetSwitch, self).refresh()
-        self._ports = None
-        self._acls = None
+        return acl.ACLCollection(
+            self._conn, self._get_acl_collection_path(),
+            redfish_version=self.redfish_version)
 
 
 class EthernetSwitchCollection(base.ResourceCollectionBase):

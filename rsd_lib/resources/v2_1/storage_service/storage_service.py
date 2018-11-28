@@ -15,8 +15,8 @@
 
 import logging
 
-from sushy import exceptions
 from sushy.resources import base
+from sushy import utils
 
 from rsd_lib.resources.v2_1.storage_service import logical_drive
 from rsd_lib.resources.v2_1.storage_service import physical_drive
@@ -45,12 +45,6 @@ class StorageService(base.ResourceBase):
     status = StatusField('Status')
     """The storage service status"""
 
-    _logical_drives = None  # ref to LogicalDriveCollection instance
-
-    _physical_drives = None  # ref to PhysicalDrivesCollection instance
-
-    _remote_targets = None  # ref to RemoteTargetCollection instance
-
     def __init__(self, connector, identity, redfish_version=None):
         """A class representing a StorageService
 
@@ -64,75 +58,51 @@ class StorageService(base.ResourceBase):
 
     def _get_logical_drive_collection_path(self):
         """Helper function to find the LogicalDriveCollection path"""
-        logical_drive_col = self.json.get('LogicalDrives')
-        if not logical_drive_col:
-            raise exceptions.MissingAttributeError(attribute='LogicalDrives',
-                                                   resource=self._path)
-        return logical_drive_col.get('@odata.id')
+        return utils.get_sub_resource_path_by(self, 'LogicalDrives')
 
     @property
+    @utils.cache_it
     def logical_drives(self):
         """Property to provide reference to `LogicalDriveCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._logical_drives is None:
-            self._logical_drives = logical_drive.LogicalDriveCollection(
-                self._conn, self._get_logical_drive_collection_path(),
-                redfish_version=self.redfish_version)
-
-        return self._logical_drives
+        return logical_drive.LogicalDriveCollection(
+            self._conn, self._get_logical_drive_collection_path(),
+            redfish_version=self.redfish_version)
 
     def _get_physical_drive_collection_path(self):
         """Helper function to find the PhysicalDriveCollection path"""
-        physical_drive_col = self.json.get('Drives')
-        if not physical_drive_col:
-            raise exceptions.MissingAttributeError(attribute='PhysicalDrives',
-                                                   resource=self._path)
-        return physical_drive_col.get('@odata.id')
+        return utils.get_sub_resource_path_by(self, 'Drives')
 
     @property
+    @utils.cache_it
     def physical_drives(self):
         """Property to provide reference to `PhysicalDriveCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._physical_drives is None:
-            self._physical_drives = physical_drive.PhysicalDriveCollection(
-                self._conn, self._get_physical_drive_collection_path(),
-                redfish_version=self.redfish_version)
-
-        return self._physical_drives
+        return physical_drive.PhysicalDriveCollection(
+            self._conn, self._get_physical_drive_collection_path(),
+            redfish_version=self.redfish_version)
 
     def _get_remote_target_collection_path(self):
         """Helper function to find the RemoteTargetCollection path"""
-        remote_target_col = self.json.get('RemoteTargets')
-        if not remote_target_col:
-            raise exceptions.MissingAttributeError(attribute='RemoteTargets',
-                                                   resource=self._path)
-        return remote_target_col.get('@odata.id')
+        return utils.get_sub_resource_path_by(self, 'RemoteTargets')
 
     @property
+    @utils.cache_it
     def remote_targets(self):
         """Property to provide reference to `RemoteTargetCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._remote_targets is None:
-            self._remote_targets = remote_target.RemoteTargetCollection(
-                self._conn, self._get_remote_target_collection_path(),
-                redfish_version=self.redfish_version)
-
-        return self._remote_targets
-
-    def refresh(self):
-        super(StorageService, self).refresh()
-        self._logical_drives = None
-        self._physical_drives = None
-        self._remote_targets = None
+        return remote_target.RemoteTargetCollection(
+            self._conn, self._get_remote_target_collection_path(),
+            redfish_version=self.redfish_version)
 
 
 class StorageServiceCollection(base.ResourceCollectionBase):

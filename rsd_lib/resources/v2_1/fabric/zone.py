@@ -50,8 +50,6 @@ class Zone(base.ResourceBase):
     status = StatusField('Status')
     """The zone status"""
 
-    _endpoints = None  # ref to contained endpoints
-
     def __init__(self, connector, identity, redfish_version=None):
         """A class representing a Zone
 
@@ -64,22 +62,16 @@ class Zone(base.ResourceBase):
                                    redfish_version)
 
     @property
+    @utils.cache_it
     def endpoints(self):
         """Return a list of Endpoints present in the Zone
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._endpoints is None:
-            self._endpoints = [
-                endpoint.Endpoint(self._conn, id_, self.redfish_version)
-                for id_ in self.links.endpoint_identities]
-
-        return self._endpoints
-
-    def refresh(self):
-        super(Zone, self).refresh()
-        self._endpoints = None
+        return [
+            endpoint.Endpoint(self._conn, id_, self.redfish_version)
+            for id_ in self.links.endpoint_identities]
 
     def update(self, endpoints):
         """Add or remove Endpoints from a Zone

@@ -54,8 +54,6 @@ class TelemetryTestCase(testtools.TestCase):
             self.telemetry_inst._get_metric_definitions_path()
 
     def test_metric_definitions(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.telemetry_inst._metric_definitions)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_2/'
@@ -89,9 +87,9 @@ class TelemetryTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_2/'
                   'telemetry_service.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.telemetry_inst.refresh()
-        # | WHEN & THEN |
-        self.assertIsNone(self.telemetry_inst._metric_definitions)
+
+        self.telemetry_inst.invalidate()
+        self.telemetry_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_2/'

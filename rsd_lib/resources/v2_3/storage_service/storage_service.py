@@ -15,14 +15,13 @@
 
 import logging
 
-from sushy import exceptions
 from sushy.resources import base
+from sushy import utils
 
 from rsd_lib.resources.v2_3.fabric import endpoint
 from rsd_lib.resources.v2_3.storage_service import drive
 from rsd_lib.resources.v2_3.storage_service import storage_pool
 from rsd_lib.resources.v2_3.storage_service import volume
-from rsd_lib import utils
 
 LOG = logging.getLogger(__name__)
 
@@ -47,14 +46,6 @@ class StorageService(base.ResourceBase):
     status = StatusField('Status')
     """The storage service status"""
 
-    _volumes = None  # ref to Volumes collection
-
-    _storage_pools = None  # ref to StoragePool collection
-
-    _drives = None  # ref to Drive collection
-
-    _endpoints = None  # ref to Endpoint collection
-
     def __init__(self, connector, identity, redfish_version=None):
         """A class representing a StorageService
 
@@ -68,98 +59,67 @@ class StorageService(base.ResourceBase):
 
     def _get_volume_collection_path(self):
         """Helper function to find the VolumeCollection path"""
-        volume_col = self.json.get('Volumes')
-        if not volume_col:
-            raise exceptions.MissingAttributeError(attribute='Volumes',
-                                                   resource=self._path)
-        return utils.get_resource_identity(volume_col)
+        return utils.get_sub_resource_path_by(self, 'Volumes')
 
     @property
+    @utils.cache_it
     def volumes(self):
         """Property to provide reference to `VolumeCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._volumes is None:
-            self._volumes = volume.VolumeCollection(
-                self._conn, self._get_volume_collection_path(),
-                redfish_version=self.redfish_version)
-
-        return self._volumes
+        return volume.VolumeCollection(
+            self._conn, self._get_volume_collection_path(),
+            redfish_version=self.redfish_version)
 
     def _get_storage_pool_collection_path(self):
         """Helper function to find the StoragePoolCollection path"""
-        storage_pool_col = self.json.get('StoragePools')
-        if not storage_pool_col:
-            raise exceptions.MissingAttributeError(attribute='StoragePools',
-                                                   resource=self._path)
-        return utils.get_resource_identity(storage_pool_col)
+        return utils.get_sub_resource_path_by(self, 'StoragePools')
 
     @property
+    @utils.cache_it
     def storage_pools(self):
         """Property to provide reference to `StoragePoolCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._storage_pools is None:
-            self._storage_pools = storage_pool.StoragePoolCollection(
-                self._conn, self._get_storage_pool_collection_path(),
-                redfish_version=self.redfish_version)
-
-        return self._storage_pools
+        return storage_pool.StoragePoolCollection(
+            self._conn, self._get_storage_pool_collection_path(),
+            redfish_version=self.redfish_version)
 
     def _get_drive_collection_path(self):
         """Helper function to find the DriveCollection path"""
-        drive_col = self.json.get('Drives')
-        if not drive_col:
-            raise exceptions.MissingAttributeError(attribute='Drives',
-                                                   resource=self._path)
-        return utils.get_resource_identity(drive_col)
+        return utils.get_sub_resource_path_by(self, 'Drives')
 
     @property
+    @utils.cache_it
     def drives(self):
         """Property to provide reference to `DriveCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._drives is None:
-            self._drives = drive.DriveCollection(
-                self._conn, self._get_drive_collection_path(),
-                redfish_version=self.redfish_version)
-
-        return self._drives
+        return drive.DriveCollection(
+            self._conn, self._get_drive_collection_path(),
+            redfish_version=self.redfish_version)
 
     def _get_endpoint_collection_path(self):
         """Helper function to find the EndpointCollection path"""
-        endpoint_col = self.json.get('Endpoints')
-        if not endpoint_col:
-            raise exceptions.MissingAttributeError(attribute='Endpoints',
-                                                   resource=self._path)
-        return utils.get_resource_identity(endpoint_col)
+        return utils.get_sub_resource_path_by(self, 'Endpoints')
 
     @property
+    @utils.cache_it
     def endpoints(self):
         """Property to provide reference to `EndpointCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._endpoints is None:
-            self._endpoints = endpoint.EndpointCollection(
-                self._conn, self._get_endpoint_collection_path(),
-                redfish_version=self.redfish_version)
-
-        return self._endpoints
-
-    def refresh(self):
-        super(StorageService, self).refresh()
-        self._volumes = None
-        self._storage_pools = None
-        self._drives = None
-        self._endpoints = None
+        return endpoint.EndpointCollection(
+            self._conn, self._get_endpoint_collection_path(),
+            redfish_version=self.redfish_version)
 
 
 class StorageServiceCollection(base.ResourceCollectionBase):

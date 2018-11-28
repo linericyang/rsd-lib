@@ -173,8 +173,6 @@ class Node(base.ResourceBase):
     links = LinksField('Links')
     """These links to related components of this composed node"""
 
-    _system = None  # ref to System instance
-
     _actions = NodeActionsField('Actions', required=True)
 
     def __init__(self, connector, identity, redfish_version=None):
@@ -305,24 +303,20 @@ class Node(base.ResourceBase):
 
     def _get_system_path(self):
         """Helper function to find the System path"""
-        system_col = self.json.get('Links').get('ComputerSystem')
-        if not system_col:
-            raise exceptions.MissingAttributeError(attribute='System',
-                                                   resource=self._path)
-        return system_col.get('@odata.id')
+        return utils.get_sub_resource_path_by(
+            self, ['Links', 'ComputerSystem'])
 
     @property
+    @utils.cache_it
     def system(self):
         """Property to provide reference to `System` instance
 
         It is calculated once the first time it is queried. On refresh,
         this property is reset.
         """
-        if self._system is None:
-            self._system = system.System(self._conn, self._get_system_path(),
-                                         redfish_version=self.redfish_version)
-
-        return self._system
+        return system.System(
+            self._conn, self._get_system_path(),
+            redfish_version=self.redfish_version)
 
     def _get_attach_endpoint_action_element(self):
         attach_endpoint_action = self._actions.attach_endpoint
@@ -410,10 +404,6 @@ class Node(base.ResourceBase):
         is deallocated and the remote target is deallocated.
         """
         self._conn.delete(self.path)
-
-    def refresh(self):
-        super(Node, self).refresh()
-        self._system = None
 
 
 class NodeCollection(base.ResourceCollectionBase):

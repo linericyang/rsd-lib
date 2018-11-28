@@ -41,12 +41,8 @@ class AttachResourceActionInfoTestCase(testtools.TestCase):
                          self.attach_action_info.identity)
         self.assertEqual('Attach Resource ActionInfo',
                          self.attach_action_info.name)
-        self.assertIsNone(self.attach_action_info._parameters)
 
     def test_parameters(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.attach_action_info._parameters)
-
         # | WHEN |
         actual_parameters = self.attach_action_info.parameters
         # | THEN |
@@ -95,10 +91,8 @@ class AttachResourceActionInfoTestCase(testtools.TestCase):
         ]
         self.assertEqual(expected, self.attach_action_info.parameters)
 
-        # On refreshing the storage service instance...
-        self.attach_action_info.refresh()
-        # | WHEN & THEN |
-        self.assertIsNone(self.attach_action_info._parameters)
+        self.attach_action_info.invalidate()
+        self.attach_action_info.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_3/'

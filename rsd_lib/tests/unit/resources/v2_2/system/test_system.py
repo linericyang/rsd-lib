@@ -51,13 +51,11 @@ class SystemTestCase(testtools.TestCase):
 
     def test__get_metrics_path_missing_systems_attr(self):
         self.system_inst._json.get('Oem').get('Intel_RackScale').pop('Metrics')
-        with self.assertRaisesRegex(
-            exceptions.MissingAttributeError, 'attribute Metrics'):
+        with self.assertRaisesRegex(exceptions.MissingAttributeError,
+                                    'attribute Oem/Intel_RackScale/Metrics'):
             self.system_inst._get_metrics_path()
 
     def test_metrics(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.system_inst._metrics)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_2/system_metrics.json',
@@ -91,9 +89,9 @@ class SystemTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_2/system.json',
                   'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.system_inst.refresh()
-        # | WHEN & THEN |
-        self.assertIsNone(self.system_inst._metrics)
+
+        self.system_inst.invalidate()
+        self.system_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_2/system_metrics.json',
@@ -104,8 +102,6 @@ class SystemTestCase(testtools.TestCase):
                               metrics.Metrics)
 
     def test_processors(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.system_inst._processors)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_2/'
@@ -139,9 +135,9 @@ class SystemTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_2/system.json',
                   'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.system_inst.refresh()
-        # | WHEN & THEN |
-        self.assertIsNone(self.system_inst._processors)
+
+        self.system_inst.invalidate()
+        self.system_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_2/'
@@ -152,8 +148,6 @@ class SystemTestCase(testtools.TestCase):
                               processor.ProcessorCollection)
 
     def test_memory(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.system_inst._memory)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_2/'
@@ -187,9 +181,9 @@ class SystemTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_2/system.json',
                   'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.system_inst.refresh()
-        # | WHEN & THEN |
-        self.assertIsNone(self.system_inst._memory)
+
+        self.system_inst.invalidate()
+        self.system_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_2/'

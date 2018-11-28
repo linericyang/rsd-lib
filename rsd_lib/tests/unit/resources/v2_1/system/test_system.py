@@ -54,8 +54,6 @@ class SystemTestCase(testtools.TestCase):
             self.system_inst._get_memory_collection_path()
 
     def test_memory(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.system_inst._memory)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -89,9 +87,9 @@ class SystemTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/system.json',
                   'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.system_inst.refresh()
-        # | WHEN & THEN |
-        self.assertIsNone(self.system_inst._memory)
+
+        self.system_inst.invalidate()
+        self.system_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -109,12 +107,10 @@ class SystemTestCase(testtools.TestCase):
     def test__get_storage_collection_path_missing_systems_attr(self):
         self.system_inst._json.pop('Storage')
         with self.assertRaisesRegex(
-            exceptions.MissingAttributeError, 'attribute StorageSubsystem'):
+            exceptions.MissingAttributeError, 'attribute Storage'):
             self.system_inst._get_storage_subsystem_collection_path()
 
     def test_storage_subsystem(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.system_inst._storage_subsystem)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -148,9 +144,9 @@ class SystemTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/system.json',
                   'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.system_inst.refresh()
-        # | WHEN & THEN |
-        self.assertIsNone(self.system_inst._storage_subsystem)
+
+        self.system_inst.invalidate()
+        self.system_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -168,12 +164,10 @@ class SystemTestCase(testtools.TestCase):
     def test__get_network_interface_collection_path_missing_systems_attr(self):
         self.system_inst._json.pop('EthernetInterfaces')
         with self.assertRaisesRegex(
-            exceptions.MissingAttributeError, 'attribute NetworkInterface'):
+            exceptions.MissingAttributeError, 'attribute EthernetInterfaces'):
             self.system_inst._get_network_interface_collection_path()
 
     def test_network_interface(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.system_inst._network_interface)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -207,9 +201,9 @@ class SystemTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/system.json',
                   'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.system_inst.refresh()
-        # | WHEN & THEN |
-        self.assertIsNone(self.system_inst._network_interface)
+
+        self.system_inst.invalidate()
+        self.system_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'

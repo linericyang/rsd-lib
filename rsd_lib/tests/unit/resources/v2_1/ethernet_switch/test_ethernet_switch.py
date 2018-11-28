@@ -57,8 +57,6 @@ class EthernetSwtichTestCase(testtools.TestCase):
         self.assertEqual('TOR', self.ethernet_switch_inst.role)
         self.assertEqual('Enabled', self.ethernet_switch_inst.status.state)
         self.assertEqual('OK', self.ethernet_switch_inst.status.health)
-        self.assertIsNone(self.ethernet_switch_inst._acls)
-        self.assertIsNone(self.ethernet_switch_inst._ports)
         self.assertEqual('/redfish/v1/Chassis/FabricModule1',
                          self.ethernet_switch_inst.links.chassis)
         self.assertEqual(('/redfish/v1/Managers/Manager1',),
@@ -76,8 +74,6 @@ class EthernetSwtichTestCase(testtools.TestCase):
             self.ethernet_switch_inst._get_port_collection_path)
 
     def test_ports(self):
-        # check for the underpath variable value
-        self.assertIsNone(self.ethernet_switch_inst._ports)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -111,10 +107,9 @@ class EthernetSwtichTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'ethernet_switch.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.ethernet_switch_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.ethernet_switch_inst._ports)
+        self.ethernet_switch_inst.invalidate()
+        self.ethernet_switch_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -135,8 +130,6 @@ class EthernetSwtichTestCase(testtools.TestCase):
             self.ethernet_switch_inst._get_acl_collection_path()
 
     def test_acl(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.ethernet_switch_inst._acls)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -169,9 +162,9 @@ class EthernetSwtichTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'ethernet_switch.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.ethernet_switch_inst.refresh()
-        # | WHEN & THEN |
-        self.assertIsNone(self.ethernet_switch_inst._acls)
+
+        self.ethernet_switch_inst.invalidate()
+        self.ethernet_switch_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'

@@ -49,7 +49,6 @@ class StorageServiceTestCase(testtools.TestCase):
         self.assertEqual('Enabled', self.storage_service_inst.status.state)
         self.assertEqual('OK', self.storage_service_inst.status.health)
         self.assertEqual('OK', self.storage_service_inst.status.health_rollup)
-        self.assertIsNone(self.storage_service_inst._volumes)
 
     def test__get_volume_collection_path(self):
         expected = '/redfish/v1/StorageServices/1/Volumes'
@@ -63,8 +62,6 @@ class StorageServiceTestCase(testtools.TestCase):
             self.storage_service_inst._get_volume_collection_path)
 
     def test_volumes(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.storage_service_inst._volumes)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_3/'
@@ -98,10 +95,9 @@ class StorageServiceTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_3/'
                   'storage_service.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.storage_service_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.storage_service_inst._volumes)
+        self.storage_service_inst.invalidate()
+        self.storage_service_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_3/'
@@ -123,8 +119,6 @@ class StorageServiceTestCase(testtools.TestCase):
             self.storage_service_inst._get_storage_pool_collection_path)
 
     def test_storage_pools(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.storage_service_inst._storage_pools)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_3/'
@@ -158,10 +152,9 @@ class StorageServiceTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_3/'
                   'storage_service.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.storage_service_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.storage_service_inst._storage_pools)
+        self.storage_service_inst.invalidate()
+        self.storage_service_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_3/'
@@ -183,8 +176,6 @@ class StorageServiceTestCase(testtools.TestCase):
             self.storage_service_inst._get_drive_collection_path)
 
     def test_drives(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.storage_service_inst._drives)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_3/'
@@ -218,10 +209,9 @@ class StorageServiceTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_3/'
                   'storage_service.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.storage_service_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.storage_service_inst._drives)
+        self.storage_service_inst.invalidate()
+        self.storage_service_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_3/'
@@ -243,8 +233,6 @@ class StorageServiceTestCase(testtools.TestCase):
             self.storage_service_inst._get_endpoint_collection_path)
 
     def test_endpoints(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.storage_service_inst._endpoints)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -278,10 +266,9 @@ class StorageServiceTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'fabric.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.storage_service_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.storage_service_inst._endpoints)
+        self.storage_service_inst.invalidate()
+        self.storage_service_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'

@@ -40,8 +40,6 @@ class AttachResourceActionInfo(base.ResourceBase):
     name = base.Field('Name')
     """The storage pool  name string"""
 
-    _parameters = None  # ref to allocated volumes collection
-
     def __init__(self, connector, identity, redfish_version=None):
         """A class representing a LogicalDrive
 
@@ -54,27 +52,23 @@ class AttachResourceActionInfo(base.ResourceBase):
             connector, identity, redfish_version)
 
     @property
+    @utils.cache_it
     def parameters(self):
         """Property to provide reference to `Parameters` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._parameters is None:
-            self._parameters = []
-            for i in self.json.get('Parameters'):
-                item = {}
-                for key in NAME_MAPPING:
-                    item[NAME_MAPPING[key]] = i[key]
+        parameters = []
+        for i in self.json.get('Parameters'):
+            item = {}
+            for key in NAME_MAPPING:
+                item[NAME_MAPPING[key]] = i[key]
 
-                if item['name'] == 'Resource':
-                    item['allowable_values'] = utils.get_members_identities(
-                        item['allowable_values'])
+            if item['name'] == 'Resource':
+                item['allowable_values'] = utils.get_members_identities(
+                    item['allowable_values'])
 
-                self._parameters.append(item)
+            parameters.append(item)
 
-        return self._parameters
-
-    def refresh(self):
-        super(AttachResourceActionInfo, self).refresh()
-        self._parameters = None
+        return parameters

@@ -13,12 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from sushy import exceptions
 from sushy.resources import base
 from sushy.resources.system import processor
+from sushy import utils
 
 from rsd_lib.resources.v2_2.system import processor_metrics
-from rsd_lib import utils
 
 
 class StatusField(base.CompositeField):
@@ -32,33 +31,22 @@ class Processor(processor.Processor):
     status = StatusField('Status')
     """The processor status"""
 
-    _metrics = None  # ref to System instance
-
     def _get_metrics_path(self):
         """Helper function to find the System process metrics path"""
-        metrics = self.json.get('Oem').get('Intel_RackScale').get('Metrics')
-        if not metrics:
-            raise exceptions.MissingAttributeError(
-                attribute='Processor Metrics', resource=self._path)
-        return utils.get_resource_identity(metrics)
+        return utils.get_sub_resource_path_by(
+            self, ['Oem', 'Intel_RackScale', 'Metrics'])
 
     @property
+    @utils.cache_it
     def metrics(self):
         """Property to provide reference to `Metrics` instance
 
         It is calculated once the first time it is queried. On refresh,
         this property is reset.
         """
-        if self._metrics is None:
-            self._metrics = processor_metrics.ProcessorMetrics(
-                self._conn, self._get_metrics_path(),
-                redfish_version=self.redfish_version)
-
-        return self._metrics
-
-    def refresh(self):
-        super(Processor, self).refresh()
-        self._metrics = None
+        return processor_metrics.ProcessorMetrics(
+            self._conn, self._get_metrics_path(),
+            redfish_version=self.redfish_version)
 
 
 class ProcessorCollection(processor.ProcessorCollection):

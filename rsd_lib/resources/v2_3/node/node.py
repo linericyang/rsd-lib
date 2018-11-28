@@ -147,8 +147,8 @@ class Node(v2_1_node.Node):
 
         self._conn.post(target_uri, data=data)
 
-    def refresh(self):
-        super(Node, self).refresh()
+    def refresh(self, force=True):
+        super(Node, self).refresh(force)
         if self._actions.attach_endpoint:
             self._actions.attach_endpoint.action_info = None
         if self._actions.detach_endpoint:

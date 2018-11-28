@@ -92,8 +92,6 @@ class StoragePoolTestCase(testtools.TestCase):
             self.storage_pool_inst._get_allocated_volumes_path)
 
     def test_allocated_volumes(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.storage_pool_inst._allocated_volumes)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_3/'
@@ -127,10 +125,9 @@ class StoragePoolTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_3/'
                   'storage_pool.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.storage_pool_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.storage_pool_inst._allocated_volumes)
+        self.storage_pool_inst.invalidate()
+        self.storage_pool_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_3/'
@@ -153,8 +150,6 @@ class StoragePoolTestCase(testtools.TestCase):
             self.storage_pool_inst._get_allocated_pools_path)
 
     def test_allocated_pools(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.storage_pool_inst._allocated_pools)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_3/'
@@ -188,10 +183,9 @@ class StoragePoolTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_3/'
                   'storage_pool.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.storage_pool_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.storage_pool_inst._allocated_pools)
+        self.storage_pool_inst.invalidate()
+        self.storage_pool_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_3/'

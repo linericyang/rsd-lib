@@ -13,11 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from sushy import exceptions
 from sushy.resources import base
+from sushy import utils
 
 from rsd_lib.resources.v2_1.ethernet_switch import acl_rule
-from rsd_lib import utils as rsd_lib_utils
 
 
 class ACL(base.ResourceBase):
@@ -34,9 +33,6 @@ class ACL(base.ResourceBase):
     oem = base.Field('Oem')
     """The acl oem info"""
 
-    _rules = None  # ref to ACLRuleCollection instance
-    """The acl rules"""
-
     links = base.Field('Links')
     """The acl links"""
 
@@ -52,28 +48,19 @@ class ACL(base.ResourceBase):
 
     def _get_acl_rule_collection_path(self):
         """Helper function to find the RuleCollection path"""
-        rule_col = self.json.get('Rules')
-        if not rule_col:
-            raise exceptions.MissingAttributeError(attribute='ACLRules',
-                                                   resource=self._path)
-        return rsd_lib_utils.get_resource_identity(rule_col)
+        return utils.get_sub_resource_path_by(self, 'Rules')
 
     @property
+    @utils.cache_it
     def rules(self):
         """Property to provide reference to `RuleCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._rules is None:
-            self._rules = acl_rule.ACLRuleCollection(
-                self._conn, self._get_acl_rule_collection_path(),
-                redfish_version=self.redfish_version)
-        return self._rules
-
-    def refresh(self):
-        super(ACL, self).refresh()
-        self._rules = None
+        return acl_rule.ACLRuleCollection(
+            self._conn, self._get_acl_rule_collection_path(),
+            redfish_version=self.redfish_version)
 
 
 class ACLCollection(base.ResourceCollectionBase):

@@ -48,8 +48,6 @@ class FabricTestCase(testtools.TestCase):
         self.assertEqual(5, self.fabric_inst.max_zones)
         self.assertEqual('Enabled', self.fabric_inst.status.state)
         self.assertEqual('OK', self.fabric_inst.status.health)
-        self.assertIsNone(self.fabric_inst._endpoints)
-        self.assertIsNone(self.fabric_inst._zones)
 
     def test__get_endpoint_collection_path(self):
         expected = '/redfish/v1/Fabrics/PCIe/Endpoints'
@@ -63,8 +61,6 @@ class FabricTestCase(testtools.TestCase):
             self.fabric_inst._get_endpoint_collection_path)
 
     def test_endpoints(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.fabric_inst._endpoints)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -98,10 +94,9 @@ class FabricTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'fabric.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.fabric_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.fabric_inst._endpoints)
+        self.fabric_inst.invalidate()
+        self.fabric_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -118,7 +113,6 @@ class FabricTestCase(testtools.TestCase):
             self.fabric_inst._get_switch_collection_path)
 
     def test_switches(self):
-        self.assertIsNone(self.fabric_inst._switches)
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'switch_collection.json', 'r') as f:
@@ -142,8 +136,8 @@ class FabricTestCase(testtools.TestCase):
                   'fabric.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
 
-        self.fabric_inst.refresh()
-        self.assertIsNone(self.fabric_inst._switches)
+        self.fabric_inst.invalidate()
+        self.fabric_inst.refresh(force=False)
 
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'switch_collection.json', 'r') as f:
@@ -158,8 +152,6 @@ class FabricTestCase(testtools.TestCase):
             self.fabric_inst._get_zone_collection_path)
 
     def test_zones(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.fabric_inst._zones)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
@@ -193,10 +185,9 @@ class FabricTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_1/'
                   'fabric.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.fabric_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.fabric_inst._zones)
+        self.fabric_inst.invalidate()
+        self.fabric_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/'

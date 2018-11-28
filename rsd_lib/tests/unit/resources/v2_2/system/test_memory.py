@@ -79,12 +79,10 @@ class MemoryTestCase(testtools.TestCase):
     def test__get_metrics_path_missing_systems_attr(self):
         self.memory_inst._json.pop('Metrics')
         with self.assertRaisesRegex(
-            exceptions.MissingAttributeError, 'attribute Memory Metrics'):
+            exceptions.MissingAttributeError, 'attribute Metrics'):
             self.memory_inst._get_metrics_path()
 
     def test_metrics(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.memory_inst._metrics)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_2/'
@@ -118,9 +116,9 @@ class MemoryTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_2/memory.json',
                   'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.memory_inst.refresh()
-        # | WHEN & THEN |
-        self.assertIsNone(self.memory_inst._metrics)
+
+        self.memory_inst.invalidate()
+        self.memory_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_2/'

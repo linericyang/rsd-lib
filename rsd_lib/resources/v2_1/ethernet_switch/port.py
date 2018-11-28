@@ -15,7 +15,6 @@
 
 import logging
 
-from sushy import exceptions
 from sushy.resources import base
 from sushy import utils
 
@@ -147,12 +146,6 @@ class Port(base.ResourceBase):
     port_type = base.Field('PortType')
     """The port type"""
 
-    _vlans = None  # ref to VLANCollection instance
-    """The port vlans"""
-
-    _static_macs = None  # ref to StaticMACCollection instance
-    """The port static macs"""
-
     links = LinksField('Links')
     """The port links"""
 
@@ -168,52 +161,35 @@ class Port(base.ResourceBase):
 
     def _get_static_mac_collection_path(self):
         """Helper function to find the StaticMACCollection path"""
-        static_mac_col = self.json.get('StaticMACs')
-        if not static_mac_col:
-            raise exceptions.MissingAttributeError(attribute='StaticMAC',
-                                                   resource=self._path)
-        return rsd_lib_utils.get_resource_identity(static_mac_col)
+        return utils.get_sub_resource_path_by(self, 'StaticMACs')
 
     @property
+    @utils.cache_it
     def static_macs(self):
         """Property to provide reference to `StaticMACollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._static_macs is None:
-            self._static_macs = static_mac.StaticMACCollection(
-                self._conn, self._get_static_mac_collection_path(),
-                redfish_version=self.redfish_version)
-
-        return self._static_macs
+        return static_mac.StaticMACCollection(
+            self._conn, self._get_static_mac_collection_path(),
+            redfish_version=self.redfish_version)
 
     def _get_vlan_collection_path(self):
         """Helper function to find the VLANCollection path"""
-        vlan_col = self.json.get('VLANs')
-        if not vlan_col:
-            raise exceptions.MissingAttributeError(attribute='VLAN',
-                                                   resource=self._path)
-        return rsd_lib_utils.get_resource_identity(vlan_col)
+        return utils.get_sub_resource_path_by(self, 'VLANs')
 
     @property
+    @utils.cache_it
     def vlans(self):
         """Property to provide reference to `VLANCollection` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._vlans is None:
-            self._vlans = vlan.VLANCollection(
-                self._conn, self._get_vlan_collection_path(),
-                redfish_version=self.redfish_version)
-
-        return self._vlans
-
-    def refresh(self):
-        super(Port, self).refresh()
-        self._static_macs = None
-        self._vlans = None
+        return vlan.VLANCollection(
+            self._conn, self._get_vlan_collection_path(),
+            redfish_version=self.redfish_version)
 
 
 class PortCollection(base.ResourceCollectionBase):

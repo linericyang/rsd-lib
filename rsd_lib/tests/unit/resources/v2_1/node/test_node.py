@@ -319,7 +319,7 @@ class NodeTestCase(testtools.TestCase):
     def test__get_system_path_missing_systems_attr(self):
         self.node_inst._json.get('Links').pop('ComputerSystem')
         self.assertRaisesRegex(
-            exceptions.MissingAttributeError, 'attribute System',
+            exceptions.MissingAttributeError, 'attribute Links/ComputerSystem',
             self.node_inst._get_system_path)
 
     def test_memory_summary_missing_attr(self):
@@ -380,8 +380,6 @@ class NodeTestCase(testtools.TestCase):
         self.assertEqual(None, self.node_inst.memory_summary)
 
     def test_system(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.node_inst._system)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_1/system.json',
@@ -414,10 +412,9 @@ class NodeTestCase(testtools.TestCase):
         # On refreshing the system instance...
         with open('rsd_lib/tests/unit/json_samples/v2_1/node.json', 'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.node_inst.refresh()
 
-        # | WHEN & THEN |
-        self.assertIsNone(self.node_inst._system)
+        self.node_inst.invalidate()
+        self.node_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_1/system.json',

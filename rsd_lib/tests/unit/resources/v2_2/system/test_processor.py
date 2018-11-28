@@ -63,13 +63,11 @@ class ProcessorTestCase(testtools.TestCase):
     def test__get_metrics_path_missing_systems_attr(self):
         self.processor_inst._json.get('Oem').get('Intel_RackScale')\
             .pop('Metrics')
-        with self.assertRaisesRegex(
-            exceptions.MissingAttributeError, 'attribute Processor Metrics'):
+        with self.assertRaisesRegex(exceptions.MissingAttributeError,
+                                    'attribute Oem/Intel_RackScale/Metrics'):
             self.processor_inst._get_metrics_path()
 
     def test_metrics(self):
-        # check for the underneath variable value
-        self.assertIsNone(self.processor_inst._metrics)
         # | GIVEN |
         self.conn.get.return_value.json.reset_mock()
         with open('rsd_lib/tests/unit/json_samples/v2_2/'
@@ -103,9 +101,9 @@ class ProcessorTestCase(testtools.TestCase):
         with open('rsd_lib/tests/unit/json_samples/v2_2/processor.json',
                   'r') as f:
             self.conn.get.return_value.json.return_value = json.loads(f.read())
-        self.processor_inst.refresh()
-        # | WHEN & THEN |
-        self.assertIsNone(self.processor_inst._metrics)
+
+        self.processor_inst.invalidate()
+        self.processor_inst.refresh(force=False)
 
         # | GIVEN |
         with open('rsd_lib/tests/unit/json_samples/v2_2/'

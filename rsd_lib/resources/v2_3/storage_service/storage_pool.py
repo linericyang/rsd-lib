@@ -15,7 +15,6 @@
 
 import logging
 
-from sushy import exceptions
 from sushy.resources import base
 from sushy import utils
 
@@ -77,10 +76,6 @@ class StoragePool(base.ResourceBase):
     identifier = IdentifierField('Identifier')
     """These identifiers list of this volume"""
 
-    _allocated_volumes = None  # ref to allocated volumes collection
-
-    _allocated_pools = None  # ref to allocated pools collection
-
     def __init__(self, connector, identity, redfish_version=None):
         """A class representing a LogicalDrive
 
@@ -93,52 +88,35 @@ class StoragePool(base.ResourceBase):
 
     def _get_allocated_volumes_path(self):
         """Helper function to find the AllocatedVolumes path"""
-        volume_col = self.json.get('AllocatedVolumes')
-        if not volume_col:
-            raise exceptions.MissingAttributeError(
-                attribute='AllocatedVolumes', resource=self._path)
-        return rsd_lib_utils.get_resource_identity(volume_col)
+        return utils.get_sub_resource_path_by(self, 'AllocatedVolumes')
 
     @property
+    @utils.cache_it
     def allocated_volumes(self):
         """Property to provide reference to `AllocatedVolumes` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._allocated_volumes is None:
-            self._allocated_volumes = volume.VolumeCollection(
-                self._conn, self._get_allocated_volumes_path(),
-                redfish_version=self.redfish_version)
-
-        return self._allocated_volumes
+        return volume.VolumeCollection(
+            self._conn, self._get_allocated_volumes_path(),
+            redfish_version=self.redfish_version)
 
     def _get_allocated_pools_path(self):
         """Helper function to find the AllocatedPools path"""
-        storage_pool_col = self.json.get('AllocatedPools')
-        if not storage_pool_col:
-            raise exceptions.MissingAttributeError(
-                attribute='AllocatedPools', resource=self._path)
-        return rsd_lib_utils.get_resource_identity(storage_pool_col)
+        return utils.get_sub_resource_path_by(self, 'AllocatedPools')
 
     @property
+    @utils.cache_it
     def allocated_pools(self):
         """Property to provide reference to `AllocatedPools` instance
 
         It is calculated once when it is queried for the first time. On
         refresh, this property is reset.
         """
-        if self._allocated_pools is None:
-            self._allocated_pools = StoragePoolCollection(
-                self._conn, self._get_allocated_pools_path(),
-                redfish_version=self.redfish_version)
-
-        return self._allocated_pools
-
-    def refresh(self):
-        super(StoragePool, self).refresh()
-        self._allocated_volumes = None
-        self._allocated_pools = None
+        return StoragePoolCollection(
+            self._conn, self._get_allocated_pools_path(),
+            redfish_version=self.redfish_version)
 
 
 class StoragePoolCollection(base.ResourceCollectionBase):
