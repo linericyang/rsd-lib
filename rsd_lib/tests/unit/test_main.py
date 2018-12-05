@@ -65,12 +65,3 @@ class RSDLibTestCase(testtools.TestCase):
             self.rsd._conn,
             self.rsd._root_prefix,
             redfish_version=self.rsd._redfish_version)
-
-    def test_factory_unsupported_version(self):
-        self.rsd._rsd_api_version = "10.0.0"
-        expected_error_message = "The rsd-lib library doesn't support RSD "\
-                                 "API version 10.0.0."
-
-        with self.assertRaisesRegex(NotImplementedError,
-                                    expected_error_message):
-            self.rsd.factory()

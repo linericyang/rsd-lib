@@ -72,12 +72,8 @@ class RSDLib(base.ResourceBase):
             # Specific interface for RSD 2.2 version
             return v2_2.RSDLibV2_2(self._conn, self._root_prefix,
                                    redfish_version=self._redfish_version)
-        elif version.StrictVersion("2.3.0") <= rsd_version \
-            and rsd_version < version.StrictVersion("2.4.0"):
+        elif version.StrictVersion("2.3.0") <= rsd_version:
             # Specific interface for RSD 2.2 version
+            # WORKAROUND: also use 2.3.0 to interact with upcoming version
             return v2_3.RSDLibV2_3(self._conn, self._root_prefix,
                                    redfish_version=self._redfish_version)
-        else:
-            raise NotImplementedError(
-                "The rsd-lib library doesn't support RSD API "
-                "version {0}.".format(self._rsd_api_version))
